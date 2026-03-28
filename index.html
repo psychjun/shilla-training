@@ -32,18 +32,22 @@
             
             <div id="start-section" class="flex flex-col h-full justify-between py-4">
                 <div class="text-right flex flex-col items-end space-y-1 mt-2">
-                    <p class="text-[14px] font-bold tracking-[0.2em] leading-tight fz-stretch text-white"><span class="text-emerald-400">F</span>reez<span class="text-emerald-400">o</span>ne</p>
+                    <p class="text-[14px] font-bold tracking-[0.2em] leading-tight fz-stretch text-white">
+                        <span class="text-emerald-400">F</span>reez<span class="text-emerald-400">o</span>ne
+                    </p>
                     <div class="shilla-staff-tag">
                         <span class="bg-black text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-[0.1em]">Shilla</span>
                         <span class="bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-[0.1em]">Staff</span>
                     </div>
                     <p class="text-[9px] font-medium uppercase tracking-[0.05em] text-[#d4af37]">Recognition Training Tool</p>
+                    <p class="text-[9px] font-normal italic tracking-wide text-gray-400">for New Employees</p>
                 </div>
 
                 <div class="space-y-6">
                     <div class="text-center">
                         <h2 class="text-5xl eng-title font-bold tracking-tighter text-white leading-none">Shilla <span class="text-[#d4af37]">Names</span></h2>
                         <p class="text-2xl text-white font-light mt-2">임직원 이름 맞추기</p>
+                        <p class="text-[10px] text-gray-400 mt-1">신라 2통합물류센터 신입근무자 교육자료</p>
                     </div>
                     <div class="bg-[#161616]/80 backdrop-blur-md py-4 rounded-xl border border-gray-700 text-center mx-6">
                         <p class="text-gray-400 text-xs">등록된 사진 장수</p>
@@ -52,8 +56,12 @@
                 </div>
                 
                 <div class="px-2 pb-12 space-y-3">
-                    <button id="start-btn" onclick="startGame()" disabled class="w-full bg-gray-600 text-black text-xl font-bold py-5 rounded-xl shadow-xl active:scale-95 transition-all">데이터 불러오는 중...</button>
-                    <p class="text-[10px] font-normal italic tracking-wide text-gray-500 text-right pr-2">만든사람 : 정호준</p>
+                    <button id="start-btn" onclick="startGame()" disabled class="w-full bg-gray-600 text-black text-xl font-bold py-5 rounded-xl shadow-xl active:scale-95 transition-all">
+                        데이터 불러오는 중...
+                    </button>
+                    <p class="text-[10px] font-normal italic tracking-wide text-gray-500 text-right pr-2">
+                        만든사람 : <span class="ml-1">정호준</span>
+                    </p>
                 </div>
             </div>
 
@@ -70,6 +78,7 @@
                 <div class="space-y-2 pb-8 text-center">
                     <div id="timer-display" class="text-5xl font-black mb-1 text-[#d4af37] eng-title" style="min-height: 1.2em;">10.0</div>
                     
+                    <p id="status-msg" class="text-white text-[10px] italic h-4">이름을 말씀하거나 아래 버튼을 누르세요.</p>
                     <button onclick="handleWrongAnswer()" class="w-full max-w-[100px] mx-auto py-1.5 mb-1 bg-gray-800/80 text-gray-300 text-xs font-medium rounded-lg border border-gray-600 active:bg-gray-700">몰라요</button>
                     <button id="mic-btn" class="w-14 h-14 rounded-full bg-[#e11d48] text-white flex items-center justify-center mx-auto shadow-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-7 h-7"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" /></svg>
@@ -90,16 +99,15 @@
 
     <script>
         let photoFiles = []; let currentIdx = 0; let correctAnswers = 0; let shuffledPhotos = [];
-        let globalTimer = null; let timeLeft = 10.0;
-        let audioCtx = null;
+        let timerObj = null; let timeLeft = 10.0;
+        let aCtx = null;
 
-        function playBeep(freq, dur) {
-            if (!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.frequency.value = freq; gain.gain.value = 0.05;
-            osc.start(); setTimeout(() => osc.stop(), dur);
+        function beep(f, d) {
+            if (!aCtx) return;
+            const o = aCtx.createOscillator(); const g = aCtx.createGain();
+            o.connect(g); g.connect(aCtx.destination);
+            o.frequency.value = f; g.gain.value = 0.05;
+            o.start(); setTimeout(() => o.stop(), d);
         }
 
         async function loadPhotos() {
@@ -112,41 +120,38 @@
                     const b = document.getElementById('start-btn');
                     b.disabled = false; b.innerText = "교육 시작"; b.classList.replace('bg-gray-600', 'bg-[#d4af37]');
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { }
         }
 
         window.startGame = function() {
-            // 오디오 컨텍스트 강제 활성화
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            
+            aCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (aCtx.state === 'suspended') aCtx.resume();
             shuffledPhotos = [...photoFiles].sort(() => Math.random() - 0.5);
             document.getElementById('start-section').style.display = 'none';
-            document.getElementById('quiz-section').style.display = 'flex'; // 확실하게 display 변경
+            document.getElementById('quiz-section').style.display = 'flex';
             showNextQuestion();
         }
 
-        function startTimer() {
-            clearInterval(globalTimer); // 이전 타이머 완전 제거
+        function runTimer() {
+            clearInterval(timerObj);
             timeLeft = 10.0;
-            const display = document.getElementById('timer-display');
-            display.innerText = "10.0";
-            display.classList.remove('timer-danger');
+            const disp = document.getElementById('timer-display');
+            disp.innerText = "10.0"; disp.classList.remove('timer-danger');
 
-            globalTimer = setInterval(() => {
+            timerObj = setInterval(() => {
                 timeLeft -= 0.1;
                 if (timeLeft <= 0) {
-                    clearInterval(globalTimer);
-                    display.innerText = "0.0";
-                    playBeep(200, 500); // 땡! 소리
+                    clearInterval(timerObj);
+                    disp.innerText = "0.0";
+                    beep(200, 500);
                     handleWrongAnswer();
                 } else {
-                    display.innerText = timeLeft.toFixed(1);
+                    disp.innerText = timeLeft.toFixed(1);
                     if (timeLeft <= 3.1) {
-                        display.classList.add('timer-danger');
-                        if (Math.abs(timeLeft % 1.0) < 0.1) playBeep(1200, 50); // 급박한 비프음
-                    } else {
-                        if (Math.abs(timeLeft % 1.0) < 0.1) playBeep(800, 30); // 1초마다 비프음
+                        disp.classList.add('timer-danger');
+                        if (Math.abs(timeLeft % 1.0) < 0.1) beep(1200, 50);
+                    } else if (Math.abs(timeLeft % 1.0) < 0.1) {
+                        beep(800, 30);
                     }
                 }
             }, 100);
@@ -154,7 +159,7 @@
 
         function showNextQuestion() {
             if (currentIdx >= shuffledPhotos.length) {
-                clearInterval(globalTimer);
+                clearInterval(timerObj);
                 document.getElementById('quiz-section').style.display = 'none';
                 document.getElementById('result-section').style.display = 'flex';
                 const acc = Math.round((correctAnswers / shuffledPhotos.length) * 100);
@@ -166,50 +171,38 @@
             document.getElementById('feedback-overlay').style.opacity = "0";
             document.getElementById('employee-img').src = shuffledPhotos[currentIdx];
             document.getElementById('result-feedback').innerText = "";
-            
-            // 사진이 바뀌면 즉시 타이머 시작
-            startTimer();
+            runTimer();
         }
 
         window.handleWrongAnswer = function() {
-            clearInterval(globalTimer);
-            const correctName = shuffledPhotos[currentIdx].split('_')[0].split('.')[0];
-            const overlay = document.getElementById('feedback-overlay');
-            const feedbackText = document.getElementById('feedback-text');
-            overlay.style.opacity = "1";
-            feedbackText.innerText = "❌"; 
-            feedbackText.style.color = "#ef4444";
-            document.getElementById('result-feedback').innerText = "정답: " + correctName;
-            
-            setTimeout(() => {
-                currentIdx++;
-                showNextQuestion();
-            }, 1500);
+            clearInterval(timerObj);
+            const correct = shuffledPhotos[currentIdx].split('_')[0].split('.')[0];
+            const ov = document.getElementById('feedback-overlay');
+            const txt = document.getElementById('feedback-text');
+            ov.style.opacity = "1";
+            txt.innerText = "❌"; txt.style.color = "#ef4444";
+            document.getElementById('result-feedback').innerText = "정답: " + correct;
+            setTimeout(() => { currentIdx++; showNextQuestion(); }, 1500);
         }
 
-        const SpeechRecog = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecog) {
-            const recognition = new SpeechRecog();
-            recognition.lang = 'ko-KR';
-            document.getElementById('mic-btn').onclick = () => { try { recognition.start(); } catch(e) {} };
-            recognition.onstart = () => document.getElementById('mic-btn').classList.add('mic-active');
-            recognition.onend = () => document.getElementById('mic-btn').classList.remove('mic-active');
-            recognition.onresult = (e) => {
-                const result = e.results[0][0].transcript.replace(/\s/g, "");
+        const SRecog = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SRecog) {
+            const r = new SRecog(); r.lang = 'ko-KR';
+            document.getElementById('mic-btn').onclick = () => { try { r.start(); } catch(e) {} };
+            r.onstart = () => document.getElementById('mic-btn').classList.add('mic-active');
+            r.onend = () => document.getElementById('mic-btn').classList.remove('mic-active');
+            r.onresult = (e) => {
+                const res = e.results[0][0].transcript.replace(/\s/g, "");
                 const correct = shuffledPhotos[currentIdx].split('_')[0].split('.')[0];
-                
-                clearInterval(globalTimer);
-                const overlay = document.getElementById('feedback-overlay');
-                const feedbackText = document.getElementById('feedback-text');
-                overlay.style.opacity = "1";
-
-                if (result.includes(correct)) {
-                    feedbackText.innerText = "✅"; 
-                    feedbackText.style.color = "#22c55e";
+                clearInterval(timerObj);
+                const ov = document.getElementById('feedback-overlay');
+                const txt = document.getElementById('feedback-text');
+                ov.style.opacity = "1";
+                if (res.includes(correct)) {
+                    txt.innerText = "✅"; txt.style.color = "#22c55e";
                     correctAnswers++;
                 } else {
-                    feedbackText.innerText = "❌"; 
-                    feedbackText.style.color = "#ef4444";
+                    txt.innerText = "❌"; txt.style.color = "#ef4444";
                 }
                 document.getElementById('result-feedback').innerText = "정답: " + correct;
                 setTimeout(() => { currentIdx++; showNextQuestion(); }, 1500);
