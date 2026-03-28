@@ -13,9 +13,11 @@
         .shilla-staff-tag { display: inline-flex; border: 1px solid white; border-radius: 1px; overflow: hidden; }
         .mic-active { animation: pulse 1.3s infinite; background-color: #be123c !important; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.6); } 70% { box-shadow: 0 0 0 20px rgba(225, 29, 72, 0); } 100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); } }
-        /* 이미지 잘림 방지 전용 스타일 */
         .img-fit-container { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; background-color: #161616; }
         #employee-img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+        /* 카운트다운 긴박함 효과 */
+        .timer-danger { color: #ef4444; animation: shake 0.2s infinite; }
+        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-2px); } 50% { transform: translateX(2px); } 75% { transform: translateX(-2px); } 100% { transform: translateX(0); } }
     </style>
 </head>
 <body class="flex flex-col relative bg-shilla-center bg-cover bg-center bg-no-repeat" style="background-image: url('shilla_center.jpg');">
@@ -65,7 +67,7 @@
             </div>
 
             <div id="quiz-section" class="hidden flex-col h-full justify-between py-4">
-                <div class="relative w-full aspect-[3/4] max-h-[46vh] bg-[#161616] rounded-2xl border-2 border-[#d4af37] overflow-hidden shadow-2xl mx-auto">
+                <div class="relative w-full aspect-[3/4] max-h-[44vh] bg-[#161616] rounded-2xl border-2 border-[#d4af37] overflow-hidden shadow-2xl mx-auto">
                     <div class="img-fit-container">
                         <img id="employee-img" src="" alt="Employee">
                     </div>
@@ -74,15 +76,17 @@
                     </div>
                 </div>
                 
-                <div class="space-y-3 pb-10 text-center">
-                    <p id="status-msg" class="text-white text-xs italic">이름을 말씀하거나 아래 버튼을 누르세요.</p>
-                    <button onclick="handleWrongAnswer('몰라요')" class="w-full max-w-[120px] mx-auto py-2 mb-1 bg-gray-800/80 text-gray-300 text-sm font-medium rounded-lg border border-gray-600 active:bg-gray-700 transition-colors">
+                <div class="space-y-2 pb-8 text-center">
+                    <div id="timer-display" class="text-4xl font-black mb-1 text-[#d4af37] eng-title">10.0</div>
+                    
+                    <p id="status-msg" class="text-white text-[10px] italic h-4">이름을 말씀하거나 아래 버튼을 누르세요.</p>
+                    <button onclick="handleWrongAnswer('몰라요')" class="w-full max-w-[100px] mx-auto py-1.5 mb-1 bg-gray-800/80 text-gray-300 text-xs font-medium rounded-lg border border-gray-600 active:bg-gray-700">
                         몰라요
                     </button>
-                    <button id="mic-btn" class="w-16 h-16 rounded-full bg-[#e11d48] text-white flex items-center justify-center mx-auto shadow-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" /></svg>
+                    <button id="mic-btn" class="w-14 h-14 rounded-full bg-[#e11d48] text-white flex items-center justify-center mx-auto shadow-lg">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-7 h-7"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" /></svg>
                     </button>
-                    <div id="result-feedback" class="text-lg font-bold h-6 text-gray-200"></div>
+                    <div id="result-feedback" class="text-lg font-bold h-6 text-gray-200 mt-1"></div>
                 </div>
             </div>
 
@@ -98,6 +102,18 @@
 
     <script>
         let photoFiles = []; let currentIdx = 0; let correctAnswers = 0; let shuffledPhotos = [];
+        let timerInterval; let timeLeft = 10;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        // 비프음 생성 함수
+        function playBeep(freq, duration) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.frequency.value = freq; gain.gain.value = 0.1;
+            osc.start(); setTimeout(() => osc.stop(), duration);
+        }
+
         async function loadPhotos() {
             try {
                 const res = await fetch(`https://api.github.com/repos/psychjun/shilla-training/contents/`);
@@ -108,22 +124,46 @@
                 if (photoFiles.length > 0) {
                     startBtn.disabled = false;
                     startBtn.innerText = "교육 시작";
-                    startBtn.classList.remove('bg-gray-600');
-                    startBtn.classList.add('bg-[#d4af37]');
+                    startBtn.classList.remove('bg-gray-600'); startBtn.classList.add('bg-[#d4af37]');
                 }
             } catch (e) { document.getElementById('total-count').innerText = "0"; }
         }
 
         window.startGame = function() {
             if (photoFiles.length === 0) return;
+            audioCtx.resume(); // 오디오 컨텍스트 활성화
             shuffledPhotos = [...photoFiles].sort(() => Math.random() - 0.5);
             document.getElementById('start-section').style.display = 'none';
             document.getElementById('quiz-section').classList.replace('hidden', 'flex');
             showNextQuestion();
         }
 
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = 10;
+            const display = document.getElementById('timer-display');
+            display.classList.remove('timer-danger');
+            display.innerText = "10.0";
+
+            timerInterval = setInterval(() => {
+                timeLeft -= 0.1;
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    display.innerText = "0.0";
+                    playBeep(200, 500); // 종료 경고음
+                    handleWrongAnswer('timeout');
+                } else {
+                    display.innerText = timeLeft.toFixed(1);
+                    if (timeLeft <= 3) display.classList.add('timer-danger');
+                    // 1초 단위 비프음 (0.1초씩 깎이므로 정수일 때만 울림)
+                    if (Math.abs(timeLeft - Math.floor(timeLeft)) < 0.05) playBeep(800, 50);
+                }
+            }, 100);
+        }
+
         function showNextQuestion() {
             if (currentIdx >= shuffledPhotos.length) {
+                clearInterval(timerInterval);
                 document.getElementById('quiz-section').classList.replace('flex', 'hidden');
                 document.getElementById('result-section').classList.replace('hidden', 'flex');
                 const acc = Math.round((correctAnswers / shuffledPhotos.length) * 100);
@@ -136,15 +176,16 @@
             document.getElementById('employee-img').src = shuffledPhotos[currentIdx];
             document.getElementById('result-feedback').innerText = "";
             document.getElementById('status-msg').innerText = "이름을 말씀하거나 아래 버튼을 누르세요.";
+            startTimer();
         }
 
         window.handleWrongAnswer = function(type) {
+            clearInterval(timerInterval);
             const correct = shuffledPhotos[currentIdx].split('_')[0].split('.')[0];
             const overlay = document.getElementById('feedback-overlay');
             const fbText = document.getElementById('feedback-text');
             overlay.style.opacity = "1";
-            fbText.innerText = "❌"; 
-            fbText.style.color = "#ef4444";
+            fbText.innerText = "❌"; fbText.style.color = "#ef4444";
             document.getElementById('result-feedback').innerText = "정답: " + correct;
             setTimeout(() => { currentIdx++; showNextQuestion(); }, 1500);
         }
@@ -161,6 +202,8 @@
                 const correct = shuffledPhotos[currentIdx].split('_')[0].split('.')[0];
                 const overlay = document.getElementById('feedback-overlay');
                 const fbText = document.getElementById('feedback-text');
+                
+                clearInterval(timerInterval); // 정답 판별 시 타이머 정지
                 overlay.style.opacity = "1";
                 if (res.includes(correct)) {
                     fbText.innerText = "✅"; fbText.style.color = "#22c55e";
