@@ -15,9 +15,8 @@
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.6); } 70% { box-shadow: 0 0 0 20px rgba(225, 29, 72, 0); } 100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); } }
         .img-fit-container { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; background-color: #161616; }
         #employee-img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
-        /* 카운트다운 긴박함 효과 */
         .timer-danger { color: #ef4444; animation: shake 0.2s infinite; }
-        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-2px); } 50% { transform: translateX(2px); } 75% { transform: translateX(-2px); } 100% { transform: translateX(0); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
     </style>
 </head>
 <body class="flex flex-col relative bg-shilla-center bg-cover bg-center bg-no-repeat" style="background-image: url('shilla_center.jpg');">
@@ -102,15 +101,15 @@
 
     <script>
         let photoFiles = []; let currentIdx = 0; let correctAnswers = 0; let shuffledPhotos = [];
-        let timerInterval; let timeLeft = 10;
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let timerInterval = null; let timeLeft = 10.0;
+        let audioCtx = null;
 
-        // 비프음 생성 함수
         function playBeep(freq, duration) {
+            if (!audioCtx) return;
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.frequency.value = freq; gain.gain.value = 0.1;
+            osc.frequency.value = freq; gain.gain.value = 0.05;
             osc.start(); setTimeout(() => osc.stop(), duration);
         }
 
@@ -120,43 +119,43 @@
                 const data = await res.json();
                 photoFiles = data.filter(f => f.name.endsWith('.jpg') && !['shilla_center.jpg','freezone_logo.png','shilla_logo.png','logo_fz_Platinum.png'].includes(f.name)).map(f => f.name);
                 document.getElementById('total-count').innerText = photoFiles.length;
-                const startBtn = document.getElementById('start-btn');
                 if (photoFiles.length > 0) {
-                    startBtn.disabled = false;
-                    startBtn.innerText = "교육 시작";
-                    startBtn.classList.remove('bg-gray-600'); startBtn.classList.add('bg-[#d4af37]');
+                    const btn = document.getElementById('start-btn');
+                    btn.disabled = false; btn.innerText = "교육 시작"; btn.classList.replace('bg-gray-600', 'bg-[#d4af37]');
                 }
             } catch (e) { document.getElementById('total-count').innerText = "0"; }
         }
 
         window.startGame = function() {
-            if (photoFiles.length === 0) return;
-            audioCtx.resume(); // 오디오 컨텍스트 활성화
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
             shuffledPhotos = [...photoFiles].sort(() => Math.random() - 0.5);
             document.getElementById('start-section').style.display = 'none';
             document.getElementById('quiz-section').classList.replace('hidden', 'flex');
             showNextQuestion();
         }
 
-        function startTimer() {
+        function runTimer() {
             clearInterval(timerInterval);
-            timeLeft = 10;
+            timeLeft = 10.0;
             const display = document.getElementById('timer-display');
             display.classList.remove('timer-danger');
-            display.innerText = "10.0";
-
+            
             timerInterval = setInterval(() => {
                 timeLeft -= 0.1;
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     display.innerText = "0.0";
-                    playBeep(200, 500); // 종료 경고음
-                    handleWrongAnswer('timeout');
+                    playBeep(200, 400); // 타임오버 알림음
+                    handleWrongAnswer();
                 } else {
                     display.innerText = timeLeft.toFixed(1);
-                    if (timeLeft <= 3) display.classList.add('timer-danger');
-                    // 1초 단위 비프음 (0.1초씩 깎이므로 정수일 때만 울림)
-                    if (Math.abs(timeLeft - Math.floor(timeLeft)) < 0.05) playBeep(800, 50);
+                    if (timeLeft <= 3.1) {
+                        display.classList.add('timer-danger');
+                        if (Math.abs(timeLeft % 1.0) < 0.1) playBeep(1200, 50); // 긴박한 소리
+                    } else if (Math.abs(timeLeft % 1.0) < 0.1) {
+                        playBeep(800, 30); // 일반 초당 소리
+                    }
                 }
             }, 100);
         }
@@ -175,11 +174,10 @@
             document.getElementById('feedback-overlay').style.opacity = "0";
             document.getElementById('employee-img').src = shuffledPhotos[currentIdx];
             document.getElementById('result-feedback').innerText = "";
-            document.getElementById('status-msg').innerText = "이름을 말씀하거나 아래 버튼을 누르세요.";
-            startTimer();
+            runTimer();
         }
 
-        window.handleWrongAnswer = function(type) {
+        window.handleWrongAnswer = function() {
             clearInterval(timerInterval);
             const correct = shuffledPhotos[currentIdx].split('_')[0].split('.')[0];
             const overlay = document.getElementById('feedback-overlay');
@@ -194,25 +192,23 @@
         if (SpeechRecognition) {
             const recognition = new SpeechRecognition();
             recognition.lang = 'ko-KR';
-            document.getElementById('mic-btn').onclick = () => { try { recognition.start(); } catch(e) {} };
-            recognition.onstart = () => { document.getElementById('mic-btn').classList.add('mic-active'); document.getElementById('status-msg').innerText = "듣고 있습니다..."; };
+            document.getElementById('mic-btn').onclick = () => recognition.start();
+            recognition.onstart = () => document.getElementById('mic-btn').classList.add('mic-active');
             recognition.onend = () => document.getElementById('mic-btn').classList.remove('mic-active');
             recognition.onresult = (e) => {
                 const res = e.results[0][0].transcript.replace(/\s/g, "");
                 const correct = shuffledPhotos[currentIdx].split('_')[0].split('.')[0];
+                clearInterval(timerInterval);
                 const overlay = document.getElementById('feedback-overlay');
                 const fbText = document.getElementById('feedback-text');
-                
-                clearInterval(timerInterval); // 정답 판별 시 타이머 정지
                 overlay.style.opacity = "1";
                 if (res.includes(correct)) {
                     fbText.innerText = "✅"; fbText.style.color = "#22c55e";
-                    document.getElementById('result-feedback').innerText = "정답: " + correct;
                     correctAnswers++;
                 } else {
                     fbText.innerText = "❌"; fbText.style.color = "#ef4444";
-                    document.getElementById('result-feedback').innerText = "정답: " + correct;
                 }
+                document.getElementById('result-feedback').innerText = "정답: " + correct;
                 setTimeout(() => { currentIdx++; showNextQuestion(); }, 1500);
             };
         }
