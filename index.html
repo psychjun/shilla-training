@@ -59,9 +59,6 @@
                     <button onclick="startGame()" id="start-btn" disabled class="w-full bg-gray-600 text-black text-xl font-bold py-5 rounded-xl shadow-xl active:scale-95 transition-all">
                         데이터 불러오는 중...
                     </button>
-                    <p class="text-[10px] font-normal italic tracking-wide text-gray-500 text-right pr-2">
-                        만든사람 : <span class="ml-1">정호준</span>
-                    </p>
                 </div>
             </div>
 
@@ -77,11 +74,7 @@
                 
                 <div class="space-y-2 pb-8 text-center">
                     <div id="timer-display" class="text-4xl font-black mb-1 text-[#d4af37] eng-title">10.0</div>
-                    
-                    <p id="status-msg" class="text-white text-[10px] italic h-4">이름을 말씀하거나 아래 버튼을 누르세요.</p>
-                    <button onclick="handleWrongAnswer('몰라요')" class="w-full max-w-[100px] mx-auto py-1.5 mb-1 bg-gray-800/80 text-gray-300 text-xs font-medium rounded-lg border border-gray-600 active:bg-gray-700">
-                        몰라요
-                    </button>
+                    <button onclick="handleWrongAnswer()" class="w-full max-w-[100px] mx-auto py-1.5 mb-1 bg-gray-800/80 text-gray-300 text-xs font-medium rounded-lg border border-gray-600 active:bg-gray-700">몰라요</button>
                     <button id="mic-btn" class="w-14 h-14 rounded-full bg-[#e11d48] text-white flex items-center justify-center mx-auto shadow-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-7 h-7"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" /></svg>
                     </button>
@@ -101,16 +94,16 @@
 
     <script>
         let photoFiles = []; let currentIdx = 0; let correctAnswers = 0; let shuffledPhotos = [];
-        let timerInterval = null; let timeLeft = 10.0;
-        let audioCtx = null;
+        let timerObj = null; let timeSec = 10.0;
+        let aContext = null;
 
-        function playBeep(freq, duration) {
-            if (!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.frequency.value = freq; gain.gain.value = 0.05;
-            osc.start(); setTimeout(() => osc.stop(), duration);
+        function beep(f, d) {
+            if (!aContext) return;
+            let o = aContext.createOscillator();
+            let g = aContext.createGain();
+            o.connect(g); g.connect(aContext.destination);
+            o.frequency.value = f; g.gain.value = 0.05;
+            o.start(); setTimeout(() => o.stop(), d);
         }
 
         async function loadPhotos() {
@@ -120,49 +113,23 @@
                 photoFiles = data.filter(f => f.name.endsWith('.jpg') && !['shilla_center.jpg','freezone_logo.png','shilla_logo.png','logo_fz_Platinum.png'].includes(f.name)).map(f => f.name);
                 document.getElementById('total-count').innerText = photoFiles.length;
                 if (photoFiles.length > 0) {
-                    const btn = document.getElementById('start-btn');
-                    btn.disabled = false; btn.innerText = "교육 시작"; btn.classList.replace('bg-gray-600', 'bg-[#d4af37]');
+                    const b = document.getElementById('start-btn');
+                    b.disabled = false; b.innerText = "교육 시작"; b.classList.replace('bg-gray-600', 'bg-[#d4af37]');
                 }
-            } catch (e) { document.getElementById('total-count').innerText = "0"; }
+            } catch (e) { }
         }
 
         window.startGame = function() {
-            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (audioCtx.state === 'suspended') audioCtx.resume();
+            aContext = new (window.AudioContext || window.webkitAudioContext)();
             shuffledPhotos = [...photoFiles].sort(() => Math.random() - 0.5);
             document.getElementById('start-section').style.display = 'none';
             document.getElementById('quiz-section').classList.replace('hidden', 'flex');
             showNextQuestion();
         }
 
-        function runTimer() {
-            clearInterval(timerInterval);
-            timeLeft = 10.0;
-            const display = document.getElementById('timer-display');
-            display.classList.remove('timer-danger');
-            
-            timerInterval = setInterval(() => {
-                timeLeft -= 0.1;
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    display.innerText = "0.0";
-                    playBeep(200, 400); // 타임오버 알림음
-                    handleWrongAnswer();
-                } else {
-                    display.innerText = timeLeft.toFixed(1);
-                    if (timeLeft <= 3.1) {
-                        display.classList.add('timer-danger');
-                        if (Math.abs(timeLeft % 1.0) < 0.1) playBeep(1200, 50); // 긴박한 소리
-                    } else if (Math.abs(timeLeft % 1.0) < 0.1) {
-                        playBeep(800, 30); // 일반 초당 소리
-                    }
-                }
-            }, 100);
-        }
-
         function showNextQuestion() {
             if (currentIdx >= shuffledPhotos.length) {
-                clearInterval(timerInterval);
+                clearInterval(timerObj);
                 document.getElementById('quiz-section').classList.replace('flex', 'hidden');
                 document.getElementById('result-section').classList.replace('hidden', 'flex');
                 const acc = Math.round((correctAnswers / shuffledPhotos.length) * 100);
@@ -174,41 +141,64 @@
             document.getElementById('feedback-overlay').style.opacity = "0";
             document.getElementById('employee-img').src = shuffledPhotos[currentIdx];
             document.getElementById('result-feedback').innerText = "";
-            runTimer();
+            
+            // 타이머 초기화 및 시작 (무조건 실행)
+            clearInterval(timerObj);
+            timeSec = 10.0;
+            const tDisp = document.getElementById('timer-display');
+            tDisp.innerText = "10.0";
+            tDisp.classList.remove('timer-danger');
+
+            timerObj = setInterval(() => {
+                timeSec -= 0.1;
+                if (timeSec <= 0) {
+                    clearInterval(timerObj);
+                    tDisp.innerText = "0.0";
+                    beep(200, 400);
+                    handleWrongAnswer();
+                } else {
+                    tDisp.innerText = timeSec.toFixed(1);
+                    if (timeSec <= 3.1) {
+                        tDisp.classList.add('timer-danger');
+                        if (Math.abs(timeSec % 1.0) < 0.1) beep(1200, 50);
+                    } else if (Math.abs(timeSec % 1.0) < 0.1) {
+                        beep(800, 30);
+                    }
+                }
+            }, 100);
         }
 
         window.handleWrongAnswer = function() {
-            clearInterval(timerInterval);
-            const correct = shuffledPhotos[currentIdx].split('_')[0].split('.')[0];
-            const overlay = document.getElementById('feedback-overlay');
-            const fbText = document.getElementById('feedback-text');
-            overlay.style.opacity = "1";
-            fbText.innerText = "❌"; fbText.style.color = "#ef4444";
-            document.getElementById('result-feedback').innerText = "정답: " + correct;
+            clearInterval(timerObj);
+            const ans = shuffledPhotos[currentIdx].split('_')[0].split('.')[0];
+            const ov = document.getElementById('feedback-overlay');
+            const txt = document.getElementById('feedback-text');
+            ov.style.opacity = "1";
+            txt.innerText = "❌"; txt.style.color = "#ef4444";
+            document.getElementById('result-feedback').innerText = "정답: " + ans;
             setTimeout(() => { currentIdx++; showNextQuestion(); }, 1500);
         }
 
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        if (SpeechRecognition) {
-            const recognition = new SpeechRecognition();
-            recognition.lang = 'ko-KR';
-            document.getElementById('mic-btn').onclick = () => recognition.start();
-            recognition.onstart = () => document.getElementById('mic-btn').classList.add('mic-active');
-            recognition.onend = () => document.getElementById('mic-btn').classList.remove('mic-active');
-            recognition.onresult = (e) => {
+        const Recog = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (Recog) {
+            const r = new Recog(); r.lang = 'ko-KR';
+            document.getElementById('mic-btn').onclick = () => r.start();
+            r.onstart = () => document.getElementById('mic-btn').classList.add('mic-active');
+            r.onend = () => document.getElementById('mic-btn').classList.remove('mic-active');
+            r.onresult = (e) => {
                 const res = e.results[0][0].transcript.replace(/\s/g, "");
-                const correct = shuffledPhotos[currentIdx].split('_')[0].split('.')[0];
-                clearInterval(timerInterval);
-                const overlay = document.getElementById('feedback-overlay');
-                const fbText = document.getElementById('feedback-text');
-                overlay.style.opacity = "1";
-                if (res.includes(correct)) {
-                    fbText.innerText = "✅"; fbText.style.color = "#22c55e";
+                const ans = shuffledPhotos[currentIdx].split('_')[0].split('.')[0];
+                clearInterval(timerObj);
+                const ov = document.getElementById('feedback-overlay');
+                const txt = document.getElementById('feedback-text');
+                ov.style.opacity = "1";
+                if (res.includes(ans)) {
+                    txt.innerText = "✅"; txt.style.color = "#22c55e";
                     correctAnswers++;
                 } else {
-                    fbText.innerText = "❌"; fbText.style.color = "#ef4444";
+                    txt.innerText = "❌"; txt.style.color = "#ef4444";
                 }
-                document.getElementById('result-feedback').innerText = "정답: " + correct;
+                document.getElementById('result-feedback').innerText = "정답: " + ans;
                 setTimeout(() => { currentIdx++; showNextQuestion(); }, 1500);
             };
         }
