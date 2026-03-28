@@ -2,22 +2,52 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Shilla Training Tool</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400;500;700&family=Playfair+Display:wght@600&display=swap');
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: #000; color: white; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; height: 100vh; overflow: hidden; position: fixed; width: 100%; }
+        
+        /* dvh: 주소창 변화에 대응하는 동적 높이 단위 */
+        body { 
+            font-family: 'Noto Sans KR', sans-serif; 
+            background-color: #000; 
+            color: white; 
+            -webkit-tap-highlight-color: transparent; 
+            margin: 0; padding: 0; 
+            height: 100dvh; 
+            width: 100%;
+            overflow: hidden; 
+            position: fixed;
+        }
+        
         .eng-title { font-family: 'Playfair Display', serif; }
         .fz-stretch { display: inline-block; transform: scaleY(1.35); transform-origin: center; }
         .shilla-staff-tag { display: inline-flex; border: 1px solid white; border-radius: 1px; overflow: hidden; }
+        
+        /* 마이크 애니메이션 */
         .mic-active { animation: pulse 1.3s infinite; background-color: #be123c !important; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.6); } 70% { box-shadow: 0 0 0 20px rgba(225, 29, 72, 0); } 100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); } }
-        .img-fit-container { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; background-color: #161616; }
-        #employee-img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
-        /* 타이머 강조 효과 */
+        @keyframes pulse { 
+            0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.6); } 
+            70% { box-shadow: 0 0 0 20px rgba(225, 29, 72, 0); } 
+            100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); } 
+        }
+
+        /* 이미지 컨테이너 최적화 */
+        .img-fit-container { 
+            display: flex; align-items: center; justify-content: center; 
+            width: 100%; height: 100%; background-color: #161616; 
+        }
+        #employee-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
         .timer-danger { color: #ef4444 !important; animation: shake 0.2s infinite; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
+        
+        /* 높이가 낮은 폰을 위한 대응 */
+        @media (max-height: 670px) {
+            .quiz-main-title { font-size: 2.5rem !important; }
+            .start-card { padding: 1rem !important; }
+        }
     </style>
 </head>
 <body class="flex flex-col relative bg-shilla-center bg-cover bg-center bg-no-repeat" style="background-image: url('shilla_center.jpg');">
@@ -28,11 +58,11 @@
         <img src="shilla_logo.png" alt="Shilla" class="h-4 w-auto object-contain">
     </header>
 
-    <main class="flex-grow flex flex-col items-center px-6 relative z-10 h-[calc(100vh-48px)]">
-        <div id="game-container" class="w-full max-w-sm h-full flex flex-col">
+    <main class="flex-grow flex flex-col items-center px-6 relative z-10 h-[calc(100dvh-48px)] overflow-hidden">
+        <div id="game-container" class="w-full max-w-sm h-full flex flex-col py-4">
             
-            <div id="start-section" class="flex flex-col h-full justify-between py-4">
-                <div class="text-right flex flex-col items-end space-y-1 mt-2">
+            <div id="start-section" class="flex flex-col h-full justify-between">
+                <div class="text-right flex flex-col items-end space-y-1">
                     <p class="text-[14px] font-bold tracking-[0.2em] leading-tight fz-stretch text-white">
                         <span class="text-emerald-400">F</span>reez<span class="text-emerald-400">o</span>ne
                     </p>
@@ -41,21 +71,22 @@
                         <span class="bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-[0.1em]">Staff</span>
                     </div>
                     <p class="text-[9px] font-medium uppercase tracking-[0.05em] text-[#d4af37]">Recognition Training Tool</p>
-                    <p class="text-[9px] font-normal italic tracking-wide text-gray-400">for New Employees</p> </div>
+                    <p class="text-[9px] font-normal italic tracking-wide text-gray-400">for New Employees</p>
+                </div>
 
-                <div class="space-y-6">
+                <div class="space-y-4">
                     <div class="text-center">
-                        <h2 class="text-5xl eng-title font-bold tracking-tighter text-white leading-none">Shilla <span class="text-[#d4af37]">Names</span></h2>
+                        <h2 class="quiz-main-title text-5xl eng-title font-bold tracking-tighter text-white leading-none">Shilla <span class="text-[#d4af37]">Names</span></h2>
                         <p class="text-2xl text-white font-light mt-2">임직원 이름 맞추기</p>
                         <p class="text-[10px] text-gray-400 mt-1">신라 2통합물류센터 신입근무자 교육자료</p>
                     </div>
-                    <div class="bg-[#161616]/80 backdrop-blur-md py-4 rounded-xl border border-gray-700 text-center mx-6 shadow-lg">
+                    <div class="start-card bg-[#161616]/80 backdrop-blur-md py-6 rounded-xl border border-gray-700 text-center mx-4 shadow-2xl">
                         <p class="text-gray-400 text-xs">등록된 사진 장수</p>
                         <p class="text-5xl font-bold text-[#d4af37] py-0.5"><span id="total-count">...</span></p>
                     </div>
                 </div>
                 
-                <div class="px-2 pb-12 space-y-3">
+                <div class="px-2 pb-6 space-y-3">
                     <button id="start-btn" onclick="startGame()" disabled class="w-full bg-gray-600 text-black text-xl font-bold py-5 rounded-xl shadow-xl active:scale-95 transition-all">
                         데이터 불러오는 중...
                     </button>
@@ -65,8 +96,8 @@
                 </div>
             </div>
 
-            <div id="quiz-section" class="hidden flex-col h-full justify-between py-4">
-                <div class="relative w-full aspect-[3/4] max-h-[44vh] bg-[#161616] rounded-2xl border-2 border-[#d4af37] overflow-hidden shadow-2xl mx-auto">
+            <div id="quiz-section" class="hidden flex-col h-full space-y-4">
+                <div class="relative w-full flex-1 min-h-0 bg-[#161616] rounded-2xl border-2 border-[#d4af37] overflow-hidden shadow-2xl mx-auto">
                     <div class="img-fit-container">
                         <img id="employee-img" src="" alt="Employee">
                     </div>
@@ -75,23 +106,25 @@
                     </div>
                 </div>
                 
-                <div class="space-y-2 pb-8 text-center">
-                    <div id="timer-display" class="text-5xl font-black mb-1 text-[#d4af37] eng-title" style="min-height: 1.2em;">10.0</div>
-                    <p id="status-msg" class="text-white text-[10px] italic h-4">이름을 말씀하거나 아래 버튼을 누르세요.</p>
-                    <button onclick="handleWrongAnswer()" class="w-full max-w-[100px] mx-auto py-1.5 mb-1 bg-gray-800/80 text-gray-300 text-xs font-medium rounded-lg border border-gray-600 active:bg-gray-700">몰라요</button>
-                    <button id="mic-btn" class="w-14 h-14 rounded-full bg-[#e11d48] text-white flex items-center justify-center mx-auto shadow-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-7 h-7"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" /></svg>
-                    </button>
-                    <div id="result-feedback" class="text-lg font-bold h-6 text-gray-200 mt-1"></div>
+                <div class="flex flex-col items-center space-y-3 pb-4">
+                    <div id="timer-display" class="text-5xl font-black text-[#d4af37] eng-title">10.0</div>
+                    <button onclick="handleWrongAnswer()" class="px-6 py-2 bg-gray-800/80 text-gray-300 text-xs font-medium rounded-lg border border-gray-600 active:bg-gray-700">몰라요</button>
+                    
+                    <div class="relative flex items-center justify-center w-full">
+                         <button id="mic-btn" class="w-16 h-16 rounded-full bg-[#e11d48] text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" /></svg>
+                        </button>
+                    </div>
+                    <div id="result-feedback" class="text-lg font-bold h-6 text-[#d4af37] drop-shadow-md"></div>
                 </div>
             </div>
 
             <div id="result-section" class="hidden flex-col h-full justify-center space-y-10">
-                <div class="bg-[#161616]/75 p-10 rounded-3xl border-2 border-[#d4af37] text-center">
+                <div class="bg-[#161616]/75 p-10 rounded-3xl border-2 border-[#d4af37] text-center shadow-2xl">
                     <p id="accuracy" class="text-8xl font-bold text-[#d4af37] eng-title">0%</p>
                     <p class="text-2xl text-white mt-2"><span id="correct-count">0</span> / <span id="total-quiz">0</span>개 정답</p>
                 </div>
-                <button onclick="location.reload()" class="w-full bg-white text-black py-4 rounded-xl font-bold text-lg shadow-lg">다시 도전하기</button>
+                <button onclick="location.reload()" class="w-full bg-white text-black py-4 rounded-xl font-bold text-lg shadow-xl active:scale-95 transition-all">다시 도전하기</button>
             </div>
         </div>
     </main>
@@ -103,10 +136,12 @@
 
         function beep(f, d) {
             if (!aCtx) return;
-            const o = aCtx.createOscillator(); const g = aCtx.createGain();
-            o.connect(g); g.connect(aCtx.destination);
-            o.frequency.value = f; g.gain.value = 0.05;
-            o.start(); setTimeout(() => o.stop(), d);
+            try {
+                const o = aCtx.createOscillator(); const g = aCtx.createGain();
+                o.connect(g); g.connect(aCtx.destination);
+                o.frequency.value = f; g.gain.value = 0.05;
+                o.start(); setTimeout(() => o.stop(), d);
+            } catch(e) {}
         }
 
         async function loadPhotos() {
@@ -126,8 +161,8 @@
             aCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (aCtx.state === 'suspended') aCtx.resume();
             shuffledPhotos = [...photoFiles].sort(() => Math.random() - 0.5);
-            document.getElementById('start-section').style.display = 'none';
-            document.getElementById('quiz-section').style.display = 'flex';
+            document.getElementById('start-section').classList.add('hidden');
+            document.getElementById('quiz-section').classList.replace('hidden', 'flex');
             showNextQuestion();
         }
 
@@ -136,6 +171,7 @@
             timeLeft = 10.0;
             const disp = document.getElementById('timer-display');
             disp.innerText = "10.0"; disp.classList.remove('timer-danger');
+
             timerObj = setInterval(() => {
                 timeLeft -= 0.1;
                 if (timeLeft <= 0) {
@@ -158,8 +194,8 @@
         function showNextQuestion() {
             if (currentIdx >= shuffledPhotos.length) {
                 clearInterval(timerObj);
-                document.getElementById('quiz-section').style.display = 'none';
-                document.getElementById('result-section').style.display = 'flex';
+                document.getElementById('quiz-section').classList.replace('flex', 'hidden');
+                document.getElementById('result-section').classList.replace('hidden', 'flex');
                 const acc = Math.round((correctAnswers / shuffledPhotos.length) * 100);
                 document.getElementById('accuracy').innerText = acc + "%";
                 document.getElementById('correct-count').innerText = correctAnswers;
