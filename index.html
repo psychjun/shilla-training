@@ -10,15 +10,11 @@
         
         body { 
             font-family: 'Noto Sans KR', sans-serif; 
-            background-color: #000; 
-            color: white; 
+            background-color: #000; color: white; 
             -webkit-tap-highlight-color: transparent; 
             margin: 0; padding: 0; 
-            height: 100dvh; 
-            width: 100%;
-            overflow: hidden; 
-            position: fixed;
-            /* iOS 하단 바 등 물리적 잘림 방지 */
+            height: 100dvh; width: 100%;
+            overflow: hidden; position: fixed;
             padding-bottom: env(safe-area-inset-bottom);
         }
         
@@ -26,11 +22,15 @@
         .fz-stretch { display: inline-block; transform: scaleY(1.35); transform-origin: center; }
         .shilla-staff-tag { display: inline-flex; border: 1px solid white; border-radius: 1px; overflow: hidden; }
         
-        .mic-active { animation: pulse 1.3s infinite; background-color: #be123c !important; }
-        @keyframes pulse { 
-            0% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0.6); } 
-            70% { box-shadow: 0 0 0 20px rgba(225, 29, 72, 0); } 
-            100% { box-shadow: 0 0 0 0 rgba(225, 29, 72, 0); } 
+        .mic-active { 
+            animation: pulse-green 1.2s infinite; 
+            background-color: #10b981 !important; 
+            transform: scale(1.1);
+        }
+        @keyframes pulse-green { 
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); } 
+            70% { box-shadow: 0 0 0 25px rgba(16, 185, 129, 0); } 
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); } 
         }
 
         .img-fit-container { 
@@ -89,7 +89,7 @@
                 </div>
             </div>
 
-            <div id="quiz-section" class="hidden flex-col h-full space-y-3">
+            <div id="quiz-section" class="hidden flex flex-col h-full space-y-3">
                 <div class="relative w-full flex-1 min-h-0 bg-[#161616] rounded-2xl border-2 border-[#d4af37] overflow-hidden shadow-2xl mx-auto">
                     <div class="img-fit-container">
                         <img id="employee-img" src="" alt="Employee">
@@ -101,11 +101,11 @@
                 
                 <div class="flex flex-col items-center space-y-2 pb-6">
                     <div id="result-feedback" class="text-xl font-bold h-7 text-[#d4af37] drop-shadow-md tracking-wider"></div>
-                    
                     <div id="timer-display" class="text-5xl font-black text-white eng-title">10.0</div>
                     
-                    <div class="flex flex-col items-center space-y-3 w-full pt-1">
-                        <button id="mic-btn" class="w-16 h-16 rounded-full bg-[#e11d48] text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform">
+                    <div class="flex flex-col items-center space-y-3 w-full pt-1 relative">
+                        <p id="mic-status" class="absolute -top-6 text-[11px] font-bold text-emerald-400 opacity-0 transition-opacity">지금 말씀하세요!</p>
+                        <button id="mic-btn" class="w-16 h-16 rounded-full bg-[#e11d48] text-white flex items-center justify-center shadow-lg active:scale-90 transition-all duration-300">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" /></svg>
                         </button>
                         <button onclick="handleWrongAnswer()" class="px-8 py-2 bg-gray-800/80 text-gray-300 text-xs font-medium rounded-lg border border-gray-600 active:bg-gray-700">몰라요 (PASS)</button>
@@ -113,7 +113,7 @@
                 </div>
             </div>
 
-            <div id="result-section" class="hidden flex-col h-full justify-center space-y-10 pb-10">
+            <div id="result-section" class="hidden flex flex-col h-full justify-center space-y-10 pb-10">
                 <div class="bg-[#161616]/75 p-10 rounded-3xl border-2 border-[#d4af37] text-center shadow-2xl">
                     <p id="accuracy" class="text-8xl font-bold text-[#d4af37] eng-title">0%</p>
                     <p class="text-2xl text-white mt-2"><span id="correct-count">0</span> / <span id="total-quiz">0</span>개 정답</p>
@@ -125,8 +125,7 @@
 
     <script>
         let photoFiles = []; let currentIdx = 0; let correctAnswers = 0; let shuffledPhotos = [];
-        let timerObj = null; let timeLeft = 10.0;
-        let aCtx = null;
+        let timerObj = null; let timeLeft = 10.0; let aCtx = null;
 
         function beep(f, d) {
             if (!aCtx) return;
@@ -155,7 +154,7 @@
             aCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (aCtx.state === 'suspended') aCtx.resume();
             shuffledPhotos = [...photoFiles].sort(() => Math.random() - 0.5);
-            document.getElementById('start-section').classList.add('hidden');
+            document.getElementById('start-section').style.display = 'none';
             document.getElementById('quiz-section').classList.replace('hidden', 'flex');
             showNextQuestion();
         }
@@ -179,8 +178,8 @@
                     if (timeLeft <= 3.1) {
                         disp.classList.add('timer-danger');
                         if (Math.abs(timeLeft % 1.0) < 0.1) beep(1200, 50);
-                    } else {
-                        if (Math.abs(timeLeft % 1.0) < 0.1) beep(800, 30);
+                    } else if (Math.abs(timeLeft % 1.0) < 0.1) {
+                        beep(800, 30);
                     }
                 }
             }, 100);
@@ -189,7 +188,7 @@
         function showNextQuestion() {
             if (currentIdx >= shuffledPhotos.length) {
                 clearInterval(timerObj);
-                document.getElementById('quiz-section').classList.replace('flex', 'hidden');
+                document.getElementById('quiz-section').style.display = 'none';
                 document.getElementById('result-section').classList.replace('hidden', 'flex');
                 const acc = Math.round((correctAnswers / shuffledPhotos.length) * 100);
                 document.getElementById('accuracy').innerText = acc + "%";
@@ -216,18 +215,38 @@
 
         const SRecog = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SRecog) {
-            const r = new SRecog(); r.lang = 'ko-KR';
-            document.getElementById('mic-btn').onclick = () => { try { r.start(); } catch(e) {} };
-            r.onstart = () => document.getElementById('mic-btn').classList.add('mic-active');
-            r.onend = () => document.getElementById('mic-btn').classList.remove('mic-active');
+            const r = new SRecog(); 
+            r.lang = 'ko-KR';
+            r.continuous = false;
+            r.interimResults = false;
+            r.maxAlternatives = 5; // 🎤 인식률 향상의 핵심: 5개의 후보군을 요청함
+
+            const micBtn = document.getElementById('mic-btn');
+            const micStatus = document.getElementById('mic-status');
+
+            micBtn.onclick = () => { try { r.start(); micBtn.disabled = true; } catch(e) {} };
+            r.onstart = () => { micBtn.classList.add('mic-active'); micStatus.style.opacity = "1"; };
+            r.onend = () => { micBtn.classList.remove('mic-active'); micStatus.style.opacity = "0"; micBtn.disabled = false; };
+
             r.onresult = (e) => {
-                const res = e.results[0][0].transcript.replace(/\s/g, "");
                 const correct = shuffledPhotos[currentIdx].split('_')[0].split('.')[0];
+                let isCorrect = false;
+
+                // 🎤 모든 후보군(Alternatives)을 돌며 정답이 있는지 체크
+                for (let i = 0; i < e.results[0].length; i++) {
+                    const transcript = e.results[0][i].transcript.replace(/[\s\.\?\!]/g, ""); // 공백 및 문장부호 제거
+                    if (transcript.includes(correct)) {
+                        isCorrect = true;
+                        break;
+                    }
+                }
+
                 clearInterval(timerObj);
                 const ov = document.getElementById('feedback-overlay');
                 const txt = document.getElementById('feedback-text');
                 ov.style.opacity = "1";
-                if (res.includes(correct)) {
+
+                if (isCorrect) {
                     txt.innerText = "✅"; txt.style.color = "#22c55e";
                     correctAnswers++;
                 } else {
