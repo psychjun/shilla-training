@@ -7,76 +7,19 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400;500;700&family=Playfair+Display:wght@600&display=swap');
-        
-        body { 
-            font-family: 'Noto Sans KR', sans-serif; 
-            background-color: #000; color: white; 
-            -webkit-tap-highlight-color: transparent; 
-            margin: 0; padding: 0; 
-            height: 100dvh; width: 100%;
-            overflow: hidden; position: fixed;
-            padding-bottom: env(safe-area-inset-bottom);
-        }
-        
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #000; color: white; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; height: 100dvh; width: 100%; overflow: hidden; position: fixed; padding-bottom: env(safe-area-inset-bottom); }
         .eng-title { font-family: 'Playfair Display', serif; }
         .fz-stretch { display: inline-block; transform: scaleY(1.35); transform-origin: center; }
         .shilla-staff-tag { display: inline-flex; border: 1px solid white; border-radius: 1px; overflow: hidden; }
-        
-        /* 🎤 네온 회전 & 글로우 애니메이션 */
-        .mic-wrapper {
-            position: relative;
-            width: 72px; height: 72px;
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-        }
-
-        .mic-wrapper.mic-active::before {
-            content: "";
-            position: absolute;
-            inset: -4px;
-            border-radius: 50%;
-            background: conic-gradient(from 0deg, transparent 30%, #10b981 50%, transparent 70%);
-            animation: spin 1s linear infinite;
-            z-index: 0;
-            filter: blur(2px);
-        }
-
-        .mic-wrapper.mic-active::after {
-            content: "";
-            position: absolute;
-            inset: -2px;
-            border-radius: 50%;
-            background: #10b981;
-            opacity: 0.3;
-            filter: blur(15px);
-            z-index: 0;
-            animation: pulse-glow 1.5s ease-in-out infinite alternate;
-        }
-
+        .mic-wrapper { position: relative; width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.3s ease; }
+        .mic-wrapper.mic-active::before { content: ""; position: absolute; inset: -4px; border-radius: 50%; background: conic-gradient(from 0deg, transparent 30%, #10b981 50%, transparent 70%); animation: spin 1s linear infinite; z-index: 0; filter: blur(2px); }
+        .mic-wrapper.mic-active::after { content: ""; position: absolute; inset: -2px; border-radius: 50%; background: #10b981; opacity: 0.3; filter: blur(15px); z-index: 0; animation: pulse-glow 1.5s ease-in-out infinite alternate; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes pulse-glow { from { opacity: 0.2; transform: scale(1); } to { opacity: 0.5; transform: scale(1.1); } }
-
-        #mic-btn {
-            position: relative;
-            z-index: 10;
-            width: 64px; height: 64px;
-            border-radius: 50%;
-            background-color: #e11d48;
-            transition: all 0.3s ease;
-        }
-
-        .mic-active #mic-btn {
-            background-color: #064e3b !important;
-            transform: scale(0.95);
-        }
-
-        .img-fit-container { 
-            display: flex; align-items: center; justify-content: center; 
-            width: 100%; height: 100%; background-color: #161616; 
-        }
+        #mic-btn { position: relative; z-index: 10; width: 64px; height: 64px; border-radius: 50%; background-color: #e11d48; transition: all 0.3s ease; }
+        .mic-active #mic-btn { background-color: #064e3b !important; transform: scale(0.95); }
+        .img-fit-container { display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; background-color: #161616; }
         #employee-img { max-width: 100%; max-height: 100%; object-fit: contain; }
-
         .timer-danger { color: #ef4444 !important; animation: shake 0.2s infinite; }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
     </style>
@@ -102,14 +45,12 @@
                         <span class="bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-[0.1em]">Staff</span>
                     </div>
                     <p class="text-[9px] font-medium uppercase tracking-[0.05em] text-[#d4af37]">Recognition Training Tool</p>
-                    <p class="text-[9px] font-normal italic tracking-wide text-gray-400">for New Employees</p>
                 </div>
 
                 <div class="space-y-4">
                     <div class="text-center">
                         <h2 class="text-5xl eng-title font-bold tracking-tighter text-white leading-none">Shilla <span class="text-[#d4af37]">Names</span></h2>
                         <p class="text-2xl text-white font-light mt-2">임직원 이름 맞추기</p>
-                        <p class="text-[10px] text-gray-400 mt-1">신라 2통합물류센터 신입근무자 교육자료</p>
                     </div>
                     <div class="bg-[#161616]/80 backdrop-blur-md py-6 rounded-xl border border-gray-700 text-center mx-4 shadow-2xl">
                         <p class="text-gray-400 text-xs">등록된 사진 장수</p>
@@ -118,35 +59,40 @@
                 </div>
                 
                 <div class="px-2 pb-10 space-y-3">
-                    <button id="start-btn" onclick="startGame()" disabled class="w-full bg-gray-600 text-black text-xl font-bold py-5 rounded-xl shadow-xl active:scale-95 transition-all">
+                    <button id="start-btn" onclick="startGame()" disabled class="w-full bg-gray-600 text-black text-xl font-bold py-5 rounded-xl shadow-xl active:scale-95 transition-all mb-2">
                         데이터 불러오는 중...
                     </button>
-                    <p class="text-[10px] font-normal italic tracking-wide text-gray-500 text-right pr-2">
+                    <button onclick="toggleAdmin()" class="w-full bg-gray-800 text-gray-400 text-xs py-2 rounded-lg border border-gray-700">임직원 사진 등록 (관리자)</button>
+                    <p class="text-[10px] font-normal italic tracking-wide text-gray-500 text-right pr-2 mt-2">
                         만든사람 : <span class="ml-1">정호준</span>
                     </p>
                 </div>
             </div>
 
+            <div id="admin-section" class="hidden flex flex-col h-full justify-center space-y-4 px-4">
+                <div class="bg-gray-900 p-6 rounded-2xl border border-[#d4af37] space-y-4">
+                    <h3 class="text-lg font-bold text-[#d4af37] mb-4">신규 사진 등록</h3>
+                    <input type="password" id="gh-token" placeholder="GitHub 토큰을 입력하세요" class="w-full p-3 bg-black border border-gray-700 rounded text-sm text-white focus:border-[#d4af37] outline-none">
+                    <input type="text" id="target-name" placeholder="직원 이름 입력 (예: 홍길동)" class="w-full p-3 bg-black border border-gray-700 rounded text-sm text-white focus:border-[#d4af37] outline-none">
+                    <input type="file" id="file-input" accept="image/*" class="w-full text-xs text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-gray-800 file:text-white hover:file:bg-gray-700">
+                    <button id="upload-btn" onclick="handleUpload()" class="w-full bg-[#d4af37] text-black font-bold py-3 rounded-xl mt-4">자동 번호로 업로드</button>
+                    <button onclick="toggleAdmin()" class="w-full text-gray-500 text-xs underline">돌아가기</button>
+                </div>
+                <div id="upload-status" class="text-center text-xs font-bold text-emerald-400 h-4"></div>
+            </div>
+
             <div id="quiz-section" class="hidden flex flex-col h-full space-y-3">
                 <div class="relative w-full flex-1 min-h-0 bg-[#161616] rounded-2xl border-2 border-[#d4af37] overflow-hidden shadow-2xl mx-auto">
-                    <div class="img-fit-container">
-                        <img id="employee-img" src="" alt="Employee">
-                    </div>
+                    <div class="img-fit-container"><img id="employee-img" src="" alt="Employee"></div>
                     <div id="feedback-overlay" class="absolute inset-0 flex items-center justify-center opacity-0 bg-black/70 z-20 pointer-events-none transition-opacity">
                         <div id="feedback-text" class="text-8xl font-bold"></div>
                     </div>
                 </div>
-                
                 <div class="flex flex-col items-center space-y-2 pb-6">
-                    <div id="result-feedback" class="text-xl font-bold h-7 text-[#d4af37] drop-shadow-md tracking-wider"></div>
+                    <div id="result-feedback" class="text-xl font-bold h-7 text-[#d4af37] tracking-wider"></div>
                     <div id="timer-display" class="text-5xl font-black text-white eng-title">10.0</div>
-                    
                     <div class="flex flex-col items-center w-full pt-1">
-                        <div id="mic-container" class="mic-wrapper mb-2">
-                            <button id="mic-btn" class="text-white flex items-center justify-center shadow-lg active:scale-90 transition-all duration-300">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" /></svg>
-                            </button>
-                        </div>
+                        <div id="mic-container" class="mic-wrapper mb-2"><button id="mic-btn" class="text-white flex items-center justify-center shadow-lg active:scale-90 transition-all duration-300"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-8 h-8"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" /></svg></button></div>
                         <p id="mic-status" class="text-[11px] font-bold text-emerald-400 opacity-0 transition-opacity h-4 mb-2">지금 말씀하세요!</p>
                         <button onclick="handleWrongAnswer()" class="px-8 py-2 bg-gray-800/80 text-gray-300 text-xs font-medium rounded-lg border border-gray-600 active:bg-gray-700">몰라요 (PASS)</button>
                     </div>
@@ -164,124 +110,113 @@
     </main>
 
     <script>
+        const REPO = "psychjun/shilla-training"; // 팀장님 저장소 주소
         let photoFiles = []; let currentIdx = 0; let correctAnswers = 0; let shuffledPhotos = [];
         let timerObj = null; let timeLeft = 10.0; let aCtx = null;
 
-        function beep(f, d) {
-            if (!aCtx) return;
-            try {
-                const o = aCtx.createOscillator(); const g = aCtx.createGain();
-                o.connect(g); g.connect(aCtx.destination);
-                o.frequency.value = f; g.gain.value = 0.05;
-                o.start(); setTimeout(() => o.stop(), d);
-            } catch(e) {}
+        // 토큰 자동 불러오기
+        window.onload = () => {
+            const savedToken = localStorage.getItem('gh_pat');
+            if(savedToken) document.getElementById('gh-token').value = savedToken;
+            loadPhotos();
+        };
+
+        function toggleAdmin() {
+            const start = document.getElementById('start-section');
+            const admin = document.getElementById('admin-section');
+            if(admin.classList.contains('hidden')) { start.classList.add('hidden'); admin.classList.remove('hidden'); }
+            else { admin.classList.add('hidden'); start.classList.remove('hidden'); }
         }
 
+        async function handleUpload() {
+            const token = document.getElementById('gh-token').value;
+            const name = document.getElementById('target-name').value.trim();
+            const fileInput = document.getElementById('file-input');
+            const status = document.getElementById('upload-status');
+            
+            if(!token || !name || !fileInput.files[0]) { alert("모든 항목을 입력하세요."); return; }
+            localStorage.setItem('gh_pat', token); // 브라우저에 토큰 저장
+            
+            status.innerText = "파일 분석 중...";
+            const nextNum = await getNextNum(name);
+            const fileName = `${name}_${nextNum}.jpg`;
+            
+            status.innerText = `${fileName} 업로드 중...`;
+            const base64Data = await toBase64(fileInput.files[0]);
+            
+            const success = await uploadToGithub(token, fileName, base64Data);
+            if(success) {
+                status.innerText = "✅ 업로드 성공! 잠시 후 데이터가 갱신됩니다.";
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                status.innerText = "❌ 업로드 실패. 토큰을 확인하세요.";
+            }
+        }
+
+        async function getNextNum(name) {
+            try {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
+                const files = await res.json();
+                let max = 0;
+                files.forEach(f => {
+                    if(f.name.startsWith(name + "_") && f.name.endsWith(".jpg")) {
+                        const num = parseInt(f.name.split('_')[1]);
+                        if(!isNaN(num) && num > max) max = num;
+                    }
+                });
+                return max + 1;
+            } catch(e) { return 1; }
+        }
+
+        async function uploadToGithub(token, fileName, base64) {
+            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${fileName}`, {
+                method: "PUT",
+                headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ message: `Upload ${fileName}`, content: base64.split(',')[1] })
+            });
+            return res.ok;
+        }
+
+        const toBase64 = file => new Promise((res, rej) => {
+            const reader = new FileReader(); reader.readAsDataURL(file);
+            reader.onload = () => res(reader.result); reader.onerror = rej;
+        });
+
+        // --- 기존 게임 로직 ---
+        function beep(f, d) { if (!aCtx) return; try { const o = aCtx.createOscillator(); const g = aCtx.createGain(); o.connect(g); g.connect(aCtx.destination); o.frequency.value = f; g.gain.value = 0.05; o.start(); setTimeout(() => o.stop(), d); } catch(e) {} }
         async function loadPhotos() {
             try {
-                const res = await fetch(`https://api.github.com/repos/psychjun/shilla-training/contents/`);
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
                 const data = await res.json();
                 photoFiles = data.filter(f => f.name.endsWith('.jpg') && !['shilla_center.jpg','freezone_logo.png','shilla_logo.png','logo_fz_Platinum.png'].includes(f.name)).map(f => f.name);
                 document.getElementById('total-count').innerText = photoFiles.length;
-                if (photoFiles.length > 0) {
-                    const b = document.getElementById('start-btn');
-                    b.disabled = false; b.innerText = "교육 시작"; b.classList.replace('bg-gray-600', 'bg-[#d4af37]');
-                }
+                if (photoFiles.length > 0) { const b = document.getElementById('start-btn'); b.disabled = false; b.innerText = "교육 시작"; b.classList.replace('bg-gray-600', 'bg-[#d4af37]'); }
             } catch (e) { }
         }
-
-        window.startGame = function() {
-            aCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if (aCtx.state === 'suspended') aCtx.resume();
-            shuffledPhotos = [...photoFiles].sort(() => Math.random() - 0.5);
-            document.getElementById('start-section').style.display = 'none';
-            document.getElementById('quiz-section').classList.replace('hidden', 'flex');
-            showNextQuestion();
-        }
-
-        function runTimer() {
-            clearInterval(timerObj);
-            timeLeft = 10.0;
-            const disp = document.getElementById('timer-display');
-            disp.innerText = "10.0"; disp.classList.remove('timer-danger');
-            disp.style.color = "white";
-
-            timerObj = setInterval(() => {
-                timeLeft -= 0.1;
-                if (timeLeft <= 0) {
-                    clearInterval(timerObj);
-                    disp.innerText = "0.0";
-                    beep(200, 500);
-                    handleWrongAnswer();
-                } else {
-                    disp.innerText = timeLeft.toFixed(1);
-                    if (timeLeft <= 3.1) {
-                        disp.classList.add('timer-danger');
-                        if (Math.abs(timeLeft % 1.0) < 0.1) beep(1200, 50);
-                    } else if (Math.abs(timeLeft % 1.0) < 0.1) {
-                        beep(800, 30);
-                    }
-                }
-            }, 100);
-        }
-
-        function showNextQuestion() {
-            if (currentIdx >= shuffledPhotos.length) {
-                clearInterval(timerObj);
-                document.getElementById('quiz-section').style.display = 'none';
-                document.getElementById('result-section').classList.replace('hidden', 'flex');
-                const acc = Math.round((correctAnswers / shuffledPhotos.length) * 100);
-                document.getElementById('accuracy').innerText = acc + "%";
-                document.getElementById('correct-count').innerText = correctAnswers;
-                document.getElementById('total-quiz').innerText = shuffledPhotos.length;
-                return;
-            }
-            document.getElementById('feedback-overlay').style.opacity = "0";
-            document.getElementById('employee-img').src = shuffledPhotos[currentIdx];
-            document.getElementById('result-feedback').innerText = "";
-            runTimer();
-        }
-
-        window.handleWrongAnswer = function() {
-            clearInterval(timerObj);
-            const correct = shuffledPhotos[currentIdx].split('_')[0].split('.')[0];
-            const ov = document.getElementById('feedback-overlay');
-            const txt = document.getElementById('feedback-text');
-            ov.style.opacity = "1";
-            txt.innerText = "❌"; txt.style.color = "#ef4444";
-            document.getElementById('result-feedback').innerText = "정답: " + correct;
-            setTimeout(() => { currentIdx++; showNextQuestion(); }, 1500);
-        }
-
+        window.startGame = function() { aCtx = new (window.AudioContext || window.webkitAudioContext)(); if (aCtx.state === 'suspended') aCtx.resume(); shuffledPhotos = [...photoFiles].sort(() => Math.random() - 0.5); document.getElementById('start-section').style.display = 'none'; document.getElementById('quiz-section').classList.replace('hidden', 'flex'); showNextQuestion(); }
+        function runTimer() { clearInterval(timerObj); timeLeft = 10.0; const disp = document.getElementById('timer-display'); disp.innerText = "10.0"; disp.classList.remove('timer-danger'); disp.style.color = "white"; timerObj = setInterval(() => { timeLeft -= 0.1; if (timeLeft <= 0) { clearInterval(timerObj); disp.innerText = "0.0"; beep(200, 500); handleWrongAnswer(); } else { disp.innerText = timeLeft.toFixed(1); if (timeLeft <= 3.1) { disp.classList.add('timer-danger'); if (Math.abs(timeLeft % 1.0) < 0.1) beep(1200, 50); } else if (Math.abs(timeLeft % 1.0) < 0.1) { beep(800, 30); } } }, 100); }
+        function showNextQuestion() { if (currentIdx >= shuffledPhotos.length) { clearInterval(timerObj); document.getElementById('quiz-section').style.display = 'none'; document.getElementById('result-section').classList.replace('hidden', 'flex'); const acc = Math.round((correctAnswers / shuffledPhotos.length) * 100); document.getElementById('accuracy').innerText = acc + "%"; document.getElementById('correct-count').innerText = correctAnswers; document.getElementById('total-quiz').innerText = shuffledPhotos.length; return; } document.getElementById('feedback-overlay').style.opacity = "0"; document.getElementById('employee-img').src = shuffledPhotos[currentIdx]; document.getElementById('result-feedback').innerText = ""; runTimer(); }
+        window.handleWrongAnswer = function() { clearInterval(timerObj); const correct = shuffledPhotos[currentIdx].split('_')[0].split('.')[0]; const ov = document.getElementById('feedback-overlay'); const txt = document.getElementById('feedback-text'); ov.style.opacity = "1"; txt.innerText = "❌"; txt.style.color = "#ef4444"; document.getElementById('result-feedback').innerText = "정답: " + correct; setTimeout(() => { currentIdx++; showNextQuestion(); }, 1500); }
         const SRecog = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SRecog) {
             const r = new SRecog(); r.lang = 'ko-KR'; r.maxAlternatives = 5;
-            const micContainer = document.getElementById('mic-container');
-            const micBtn = document.getElementById('mic-btn');
-            const micStatus = document.getElementById('mic-status');
-
+            const micContainer = document.getElementById('mic-container'); const micBtn = document.getElementById('mic-btn'); const micStatus = document.getElementById('mic-status');
             micBtn.onclick = () => { try { r.start(); micBtn.disabled = true; } catch(e) {} };
             r.onstart = () => { micContainer.classList.add('mic-active'); micStatus.style.opacity = "1"; };
             r.onend = () => { micContainer.classList.remove('mic-active'); micStatus.style.opacity = "0"; micBtn.disabled = false; };
-
             r.onresult = (e) => {
-                const correct = shuffledPhotos[currentIdx].split('_')[0].split('.')[0];
-                let isCorrect = false;
+                const correct = shuffledPhotos[currentIdx].split('_')[0].split('.')[0]; let isCorrect = false;
                 for (let i = 0; i < e.results[0].length; i++) {
                     const transcript = e.results[0][i].transcript.replace(/[\s\.\?\!]/g, "");
                     if (transcript.includes(correct)) { isCorrect = true; break; }
                 }
-                clearInterval(timerObj);
-                const ov = document.getElementById('feedback-overlay');
-                const txt = document.getElementById('feedback-text');
-                ov.style.opacity = "1";
+                clearInterval(timerObj); const ov = document.getElementById('feedback-overlay'); const txt = document.getElementById('feedback-text'); ov.style.opacity = "1";
                 if (isCorrect) { txt.innerText = "✅"; txt.style.color = "#22c55e"; correctAnswers++; } 
                 else { txt.innerText = "❌"; txt.style.color = "#ef4444"; }
                 document.getElementById('result-feedback').innerText = "정답: " + correct;
                 setTimeout(() => { currentIdx++; showNextQuestion(); }, 1500);
             };
         }
-        loadPhotos();
     </script>
 </body>
 </html>
