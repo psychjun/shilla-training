@@ -2,142 +2,123 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Panel</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Freezone Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: #000; color: white; }
-        .tab-btn.active { border-bottom: 2px solid #d4af37; color: #d4af37; }
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #000; color: white; margin: 0; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .btn-tab.active { border-bottom: 2px solid #d4af37; color: #d4af37; }
     </style>
 </head>
 <body class="p-6">
-    <div class="max-w-md mx-auto space-y-8">
-        <header class="flex justify-between items-center border-b border-gray-800 pb-4">
-            <h1 class="text-xl font-bold text-[#d4af37]">관리자 모드</h1>
-            <button onclick="location.href='index.html'" class="text-xs text-gray-500">나가기</button>
-        </header>
+    <header onclick="location.href='index.html'" class="mb-8 cursor-pointer">
+        <h1 class="text-xl font-bold text-[#d4af37]">⚙️ 관리자 모드</h1>
+        <p class="text-xs text-gray-500">Freezone Management System</p>
+    </header>
 
-        <div class="flex space-x-4 border-b border-gray-800">
-            <button id="tab-up" onclick="switchTab('upload')" class="tab-btn active py-2 flex-1">사진 등록</button>
-            <button id="tab-del" onclick="switchTab('delete')" class="tab-btn py-2 flex-1">사진 삭제</button>
-        </div>
+    <div class="flex border-b border-gray-800 mb-6 text-sm">
+        <button onclick="openTab('logs')" id="tab-logs-btn" class="btn-tab flex-1 py-2 active">접속 기록</button>
+        <button onclick="openTab('pw')" id="tab-pw-btn" class="btn-tab flex-1 py-2">비밀번호 관리</button>
+        <button onclick="openTab('content')" id="tab-content-btn" class="btn-tab flex-1 py-2">콘텐츠</button>
+    </div>
 
-        <input type="password" id="gh-token" placeholder="GitHub 토큰을 입력하세요" class="w-full p-3 bg-gray-900 border border-gray-700 rounded text-sm">
-
-        <div id="section-upload" class="space-y-4">
-            <input type="text" id="up-name" placeholder="직원 이름" class="w-full p-3 bg-gray-900 border border-gray-700 rounded">
-            <input type="file" id="up-file" accept="image/*" class="text-sm text-gray-400">
-            <button onclick="handleUpload()" class="w-full bg-[#d4af37] text-black font-bold py-3 rounded-xl">자동 번호로 등록</button>
-        </div>
-
-        <div id="section-delete" class="hidden space-y-4">
-            <div class="flex space-x-2">
-                <input type="text" id="del-search" placeholder="삭제할 이름 검색" class="flex-1 p-3 bg-gray-900 border border-gray-700 rounded">
-                <button onclick="searchPhotos()" class="px-4 bg-gray-700 rounded">검색</button>
+    <div id="logs" class="tab-content active space-y-4">
+        <h2 class="text-sm font-bold">최근 접속 로그 (아이디별)</h2>
+        <div id="log-list" class="bg-gray-900 rounded-lg p-4 text-[11px] space-y-2 max-h-80 overflow-y-auto">
             </div>
-            <div id="thumb-container" class="grid grid-cols-3 gap-2 min-h-[100px] p-2 bg-gray-900 rounded">
-                </div>
-            <button onclick="deleteSelected()" id="del-btn" class="hidden w-full bg-red-600 text-white font-bold py-3 rounded-xl">선택한 사진 삭제</button>
-        </div>
+        <button onclick="clearLogs()" class="w-full py-2 text-[10px] text-red-500 border border-red-900 rounded">기록 초기화</button>
+    </div>
 
-        <div id="status" class="text-center text-xs font-bold text-emerald-400 h-4"></div>
+    <div id="pw" class="tab-content space-y-4">
+        <div id="pw-controls" class="bg-gray-900 p-4 rounded-lg space-y-4">
+            </div>
+        <p class="text-[10px] text-gray-500">* 실제 깃허브 서버 비밀번호를 바꾸려면 기술적 연동이 추가로 필요합니다. 현재는 UI 예시입니다.</p>
+    </div>
+
+    <div id="content" class="tab-content space-y-4">
+        <div class="p-4 bg-gray-900 rounded-lg">
+            <p class="text-xs mb-2">식단표 수동 업데이트</p>
+            <button class="w-full bg-[#d4af37] text-black py-2 rounded text-xs font-bold">GitHub Action 실행</button>
+        </div>
     </div>
 
     <script>
-        const REPO = "psychjun/shilla-training";
-        let selectedFiles = [];
+        const role = sessionStorage.getItem('userRole');
+
+        function openTab(id) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.getElementById('tab-'+id+'-btn').classList.add('active');
+        }
+
+        // 로그 불러오기
+        function loadLogs() {
+            const logs = JSON.parse(localStorage.getItem('loginLogs') || '[]');
+            const list = document.getElementById('log-list');
+            if(logs.length === 0) {
+                list.innerHTML = "<p class='text-gray-600'>접속 기록이 없습니다.</p>";
+            } else {
+                list.innerHTML = logs.reverse().map(l => `
+                    <div class="flex justify-between border-b border-gray-800 pb-1">
+                        <span class="text-gray-400">${l.time}</span>
+                        <span class="font-bold text-emerald-400">${l.user} 접속</span>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function clearLogs() {
+            if(confirm('모든 접속 기록을 삭제하시겠습니까?')) {
+                localStorage.removeItem('loginLogs');
+                loadLogs();
+            }
+        }
+
+        // 비밀번호 관리 UI 생성
+        function loadPWManager() {
+            const container = document.getElementById('pw-controls');
+            const USERS = { "1st": "freezone1011", "2nd": "freezone2022", "3rd": "freezone3033", "master": "freezone9999" };
+            const NAMES = { "1st": "1조", "2nd": "2조", "3rd": "3조", "master": "Master" };
+
+            let html = "";
+            if (role === 'master') {
+                // 마스터는 모두 보고 수정 가능
+                for (let id in USERS) {
+                    html += `
+                        <div class="flex flex-col space-y-1 pb-3 border-b border-gray-800">
+                            <span class="text-xs text-[#d4af37]">${NAMES[id]}</span>
+                            <div class="flex gap-2">
+                                <input type="text" value="${USERS[id]}" id="pw-${id}" class="flex-1 bg-black p-2 rounded text-xs">
+                                <button onclick="alert('${NAMES[id]} 비번 변경!')" class="bg-gray-700 px-3 rounded text-[10px]">변경</button>
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                // 일반 조는 자기 것만 수정 가능
+                html = `
+                    <div class="flex flex-col space-y-1">
+                        <span class="text-xs text-[#d4af37]">${NAMES[role]} 비밀번호 변경</span>
+                        <div class="flex gap-2">
+                            <input type="password" placeholder="새 비밀번호 입력" class="flex-1 bg-black p-2 rounded text-xs">
+                            <button onclick="alert('비밀번호가 변경되었습니다!')" class="bg-gray-700 px-3 rounded text-[10px]">변경</button>
+                        </div>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+        }
 
         window.onload = () => {
-            const token = localStorage.getItem('gh_pat');
-            if(token) document.getElementById('gh-token').value = token;
-            if(sessionStorage.getItem('userRole') !== 'master') { alert('권한이 없습니다.'); location.href='index.html'; }
+            if(role !== 'master' && role !== '1st' && role !== '2nd' && role !== '3rd') {
+                location.href = 'index.html';
+            }
+            loadLogs();
+            loadPWManager();
         };
-
-        function switchTab(type) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('section-upload').classList.add('hidden');
-            document.getElementById('section-delete').classList.add('hidden');
-            
-            if(type === 'upload') {
-                document.getElementById('tab-up').classList.add('active');
-                document.getElementById('section-upload').classList.remove('hidden');
-            } else {
-                document.getElementById('tab-del').classList.add('active');
-                document.getElementById('section-delete').classList.remove('hidden');
-            }
-        }
-
-        // --- 업로드 로직 ---
-        async function handleUpload() {
-            const token = document.getElementById('gh-token').value;
-            const name = document.getElementById('up-name').value;
-            const file = document.getElementById('up-file').files[0];
-            if(!token || !name || !file) return alert("입력 확인!");
-            localStorage.setItem('gh_pat', token);
-
-            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
-            const files = await res.json();
-            let max = 0;
-            files.forEach(f => {
-                if(f.name.startsWith(name + "_")) {
-                    const n = parseInt(f.name.split('_')[1]);
-                    if(n > max) max = n;
-                }
-            });
-
-            const fileName = `${name}_${max+1}.jpg`;
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = async () => {
-                const base64 = reader.result.split(',')[1];
-                const upRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${fileName}`, {
-                    method: "PUT",
-                    headers: { "Authorization": `token ${token}` },
-                    body: JSON.stringify({ message: `Upload ${fileName}`, content: base64 })
-                });
-                if(upRes.ok) { alert("업로드 성공!"); location.reload(); }
-            };
-        }
-
-        // --- 삭제 로직 ---
-        async function searchPhotos() {
-            const name = document.getElementById('del-search').value;
-            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
-            const allFiles = await res.json();
-            const filtered = allFiles.filter(f => f.name.startsWith(name + "_") && f.name.endsWith(".jpg"));
-            
-            const container = document.getElementById('thumb-container');
-            container.innerHTML = "";
-            selectedFiles = [];
-            
-            filtered.forEach(f => {
-                const div = document.createElement('div');
-                div.className = "relative aspect-square border-2 border-transparent cursor-pointer";
-                div.innerHTML = `<img src="${f.download_url}" class="w-full h-full object-cover">`;
-                div.onclick = () => {
-                    div.classList.toggle('border-red-600');
-                    if(selectedFiles.includes(f)) selectedFiles = selectedFiles.filter(i => i !== f);
-                    else selectedFiles.push(f);
-                    document.getElementById('del-btn').classList.toggle('hidden', selectedFiles.length === 0);
-                };
-                container.appendChild(div);
-            });
-        }
-
-        async function deleteSelected() {
-            const token = document.getElementById('gh-token').value;
-            if(!confirm(`${selectedFiles.length}개의 사진을 삭제하시겠습니까?`)) return;
-
-            for(const file of selectedFiles) {
-                await fetch(`https://api.github.com/repos/${REPO}/contents/${file.name}`, {
-                    method: "DELETE",
-                    headers: { "Authorization": `token ${token}` },
-                    body: JSON.stringify({ message: `Delete ${file.name}`, sha: file.sha })
-                });
-            }
-            alert("삭제 완료!");
-            searchPhotos();
-        }
     </script>
 </body>
 </html>

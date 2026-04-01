@@ -22,14 +22,13 @@
     </header>
 
     <main class="relative z-10 w-full max-w-sm flex-grow flex flex-col items-center pt-10 px-6">
-        
         <div id="login-section" class="w-full space-y-6 mt-10">
             <div class="text-center mb-10">
-                <h1 class="text-3xl font-bold text-[#d4af37]">FREEZONE</h1>
-                <p class="text-gray-400 text-sm mt-2">서비스 접속을 위해 로그인하세요</p>
+                <h1 class="text-4xl font-black text-[#d4af37] tracking-tighter">FREEZONE</h1>
+                <p class="text-gray-400 text-sm mt-2">안전근무를 위한 통합 포털</p>
             </div>
             <div class="space-y-3">
-                <input type="text" id="user-id" placeholder="ID (예: 1st, master)" class="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white outline-none focus:border-[#d4af37]">
+                <input type="text" id="user-id" placeholder="ID (1st, 2nd, 3rd, master)" class="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white outline-none focus:border-[#d4af37]">
                 <input type="password" id="user-pw" placeholder="Password" class="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white outline-none focus:border-[#d4af37]">
                 <button onclick="checkLogin()" class="w-full bg-[#d4af37] text-black font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all">로그인</button>
             </div>
@@ -39,10 +38,10 @@
         <div id="menu-section" class="hidden w-full h-full flex flex-col">
             <div class="flex justify-between items-end mb-8">
                 <div>
-                    <h2 class="text-2xl font-bold text-white"><span id="welcome-user">1st</span> 조님,</h2>
-                    <p class="text-[#d4af37]">오늘도 안전근무 하십시오.</p>
+                    <h2 class="text-2xl font-bold text-white"><span id="welcome-user"></span>,</h2>
+                    <p class="text-[#d4af37] text-sm">오늘도 안전근무 하십시오.</p>
                 </div>
-                <button onclick="location.reload()" class="text-xs text-gray-400 underline">로그아웃</button>
+                <button onclick="logout()" class="text-xs text-gray-400 underline">로그아웃</button>
             </div>
 
             <div class="grid grid-cols-3 gap-4 w-full">
@@ -54,66 +53,70 @@
                     <div class="app-card w-16 h-16 rounded-2xl flex items-center justify-center text-2xl">🍱</div>
                     <span class="text-[10px] font-medium">구내식당</span>
                 </button>
-                <button id="admin-btn" onclick="location.href='admin.html'" class="hidden flex flex-col items-center space-y-2">
+                <button onclick="goToAdmin()" class="flex flex-col items-center space-y-2">
                     <div class="app-card w-16 h-16 rounded-2xl flex items-center justify-center text-2xl">⚙️</div>
                     <span class="text-[10px] font-medium text-[#d4af37]">관리자</span>
                 </button>
-                <div class="flex flex-col items-center space-y-2 opacity-50">
-                    <div class="app-card w-16 h-16 rounded-2xl flex items-center justify-center text-2xl">🔦</div>
-                    <span class="text-[10px] font-medium">순찰 매뉴얼</span>
-                </div>
-                <div class="flex flex-col items-center space-y-2 opacity-50">
-                    <div class="app-card w-16 h-16 rounded-2xl flex items-center justify-center text-2xl">🛡️</div>
-                    <span class="text-[10px] font-medium">출입검색</span>
-                </div>
-                <div class="flex flex-col items-center space-y-2 opacity-50">
-                    <div class="app-card w-16 h-16 rounded-2xl flex items-center justify-center text-2xl">🚨</div>
-                    <span class="text-[10px] font-medium">비상연락</span>
-                </div>
+                <div class="flex flex-col items-center space-y-2 opacity-30"><div class="app-card w-16 h-16 rounded-2xl flex items-center justify-center text-2xl">🔦</div><span class="text-[10px] font-medium">순찰</span></div>
+                <div class="flex flex-col items-center space-y-2 opacity-30"><div class="app-card w-16 h-16 rounded-2xl flex items-center justify-center text-2xl">🛡️</div><span class="text-[10px] font-medium">출입검색</span></div>
+                <div class="flex flex-col items-center space-y-2 opacity-30"><div class="app-card w-16 h-16 rounded-2xl flex items-center justify-center text-2xl">🚨</div><span class="text-[10px] font-medium">비상연락</span></div>
             </div>
         </div>
     </main>
 
+    <footer class="relative z-10 w-full text-center pb-6 text-[10px] text-gray-500">
+        Made by Jeong Ho-jun
+    </footer>
+
     <script>
-        // 🔐 생성된 계정 정보 (팀장님 요청 반영)
-        const USERS = {
-            "1st": "freezone1011",
-            "2nd": "freezone2022",
-            "3rd": "freezone3033",
-            "master": "freezone9999"
-        };
+        // 호칭 맵핑 (요청하신 대로 수정)
+        const NAMES = { "1st": "1조", "2nd": "2조", "3rd": "3조", "master": "Master" };
 
         function checkLogin() {
             const id = document.getElementById('user-id').value;
             const pw = document.getElementById('user-pw').value;
-            const error = document.getElementById('login-error');
+            
+            // 비밀번호 (현재 하드코딩, 추후 admin에서 수정 가능하게 연동 예정)
+            const USERS = { "1st": "freezone1011", "2nd": "freezone2022", "3rd": "freezone3033", "master": "freezone9999" };
 
             if (USERS[id] && USERS[id] === pw) {
-                // 로그인 성공
                 sessionStorage.setItem('isLoggedIn', 'true');
                 sessionStorage.setItem('userRole', id);
+                
+                // [접속 기록 기록] - 로컬 스토리지에 저장 (달력용)
+                const log = JSON.parse(localStorage.getItem('loginLogs') || '[]');
+                log.push({ user: NAMES[id], time: new Date().toLocaleString() });
+                localStorage.setItem('loginLogs', JSON.stringify(log));
+
                 showMenu(id);
             } else {
-                error.innerText = "아이디 또는 비밀번호가 올바르지 않습니다.";
+                document.getElementById('login-error').innerText = "아이디 또는 비밀번호가 틀립니다.";
             }
         }
 
         function showMenu(role) {
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('menu-section').classList.remove('hidden');
-            document.getElementById('welcome-user').innerText = role;
-            
-            // 마스터 계정일 때만 관리자 버튼 표시
-            if (role === 'master') {
-                document.getElementById('admin-btn').classList.remove('hidden');
+            document.getElementById('welcome-user').innerText = NAMES[role];
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            location.replace('index.html'); // 즉시 반영 및 페이지 새로고침 효과
+        }
+
+        function goToAdmin() {
+            if(sessionStorage.getItem('userRole') === 'master') {
+                location.href = 'admin.html';
+            } else {
+                alert('권한이 없습니다. Master 계정으로 로그인하세요.');
             }
         }
 
-        // 페이지 로드 시 로그인 상태 유지 확인
         window.onload = () => {
-            const isLoggedIn = sessionStorage.getItem('isLoggedIn');
-            const userRole = sessionStorage.getItem('userRole');
-            if (isLoggedIn === 'true') showMenu(userRole);
+            if (sessionStorage.getItem('isLoggedIn') === 'true') {
+                showMenu(sessionStorage.getItem('userRole'));
+            }
         };
     </script>
 </body>
