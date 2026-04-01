@@ -9,16 +9,19 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
         body { font-family: 'Noto Sans KR', sans-serif; background-color: #000; color: white; margin: 0; overflow: hidden; height: 100dvh; }
         
-        /* 마이크 애니메이션 */
-        .mic-active { animation: pulse-red 1.5s infinite; background-color: #ef4444 !important; transform: scale(1.1); }
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-            70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        /* 마이크 레드 글로우 애니메이션 (예전 그대로) */
+        .mic-active { 
+            animation: mic-glow 1.2s infinite; 
+            background-color: #ff0000 !important; 
+            transform: scale(1.1); 
+        }
+        @keyframes mic-glow {
+            0% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0.8); }
+            70% { box-shadow: 0 0 0 30px rgba(255, 0, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 0, 0, 0); }
         }
 
-        /* 타이머 긴박한 효과 */
-        .timer-danger { color: #ff4d4d; animation: shake 0.2s infinite; }
+        .timer-danger { color: #ff4d4d; animation: shake 0.1s infinite; }
         @keyframes shake {
             0% { transform: translateX(0); }
             25% { transform: translateX(-2px); }
@@ -35,41 +38,40 @@
 
     <main class="flex-grow flex flex-col items-center justify-center px-6 relative">
         
-        <div id="start-screen" class="w-full max-w-sm flex flex-col items-center space-y-8">
+        <div id="start-screen" class="w-full max-w-sm flex flex-col items-center space-y-10">
             <div class="text-center">
-                <h1 class="text-4xl font-black text-[#d4af37] leading-tight">신라 임직원<br>이름 맞추기</h1>
-                <p class="text-gray-400 text-sm mt-4">사진을 보고 이름을 말씀하세요.<br>제한시간은 10초입니다.</p>
+                <h1 class="text-5xl font-black text-[#d4af37] leading-tight tracking-tighter">신라 임직원<br>이름 맞추기</h1>
+                <p class="text-gray-400 text-sm mt-6">사진을 보고 이름을 말씀하세요.<br>제한시간은 10초입니다.</p>
             </div>
-            <button onclick="initQuiz()" class="w-full bg-[#d4af37] text-black font-black py-5 rounded-2xl text-xl shadow-[0_0_20px_rgba(212,175,55,0.4)] active:scale-95 transition-all">
+            <button onclick="initQuiz()" class="w-full bg-[#d4af37] text-black font-black py-6 rounded-2xl text-2xl shadow-[0_0_30px_rgba(212,175,55,0.3)] active:scale-95 transition-all">
                 교 육 시 작
             </button>
         </div>
 
         <div id="quiz-container" class="hidden w-full max-w-sm flex flex-col space-y-6">
-            <div class="relative w-full aspect-[3/4] bg-[#1a1a1a] rounded-3xl border-2 border-[#d4af37] overflow-hidden shadow-2xl">
+            <div class="relative w-full aspect-[3/4] bg-[#1a1a1a] rounded-[40px] border-2 border-[#d4af37] overflow-hidden shadow-2xl">
                 <img id="employee-img" src="" class="w-full h-full object-contain">
-                <div id="feedback-overlay" class="absolute inset-0 flex items-center justify-center opacity-0 pointer-events-none bg-black/60 transition-opacity duration-300">
+                <div id="feedback-overlay" class="absolute inset-0 flex items-center justify-center opacity-0 pointer-events-none bg-black/40 transition-opacity duration-300">
                     <div id="feedback-icon" class="text-9xl font-bold"></div>
                 </div>
             </div>
 
             <div class="flex flex-col items-center space-y-4">
-                <div id="timer-display" class="text-5xl font-black italic tracking-tighter">10.0</div>
-                
-                <div class="flex flex-col items-center w-full space-y-4">
-                    <button id="mic-btn" class="w-20 h-20 rounded-full bg-red-600 flex items-center justify-center shadow-lg transition-all active:scale-90">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-10 h-10 text-white">
+                <div id="timer-display" class="text-6xl font-black italic tracking-tighter">10.0</div>
+                <div class="flex flex-col items-center w-full space-y-6">
+                    <button id="mic-btn" class="w-24 h-24 rounded-full bg-red-600 flex items-center justify-center shadow-xl transition-all active:scale-90">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-12 h-12 text-white">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
                         </svg>
                     </button>
-                    <button onclick="handleAnswer(false)" class="text-gray-500 text-sm font-bold border-b border-gray-700 pb-0.5">몰라요 (PASS)</button>
+                    <button onclick="handleAnswer(false)" class="text-gray-500 text-sm font-bold border-b border-gray-800 pb-1">몰라요 (PASS)</button>
                 </div>
-                <div id="correct-answer-text" class="h-6 text-[#d4af37] font-bold text-lg"></div>
+                <div id="correct-answer-text" class="h-6 text-[#d4af37] font-black text-xl"></div>
             </div>
         </div>
 
         <div id="result-section" class="hidden w-full max-w-sm flex flex-col items-center space-y-10">
-            <div class="bg-[#1a1a1a] p-10 rounded-[40px] border-4 border-[#d4af37] text-center w-full shadow-2xl">
+            <div class="bg-[#1a1a1a] p-10 rounded-[50px] border-4 border-[#d4af37] text-center w-full shadow-2xl">
                 <p class="text-gray-400 text-lg mb-2">당신의 점수는?</p>
                 <p id="accuracy" class="text-8xl font-black text-[#d4af37]">0%</p>
                 <p class="text-xl mt-6 text-white font-bold"><span id="correct-count">0</span> / <span id="total-quiz">0</span> 정답</p>
@@ -79,30 +81,25 @@
     </main>
 
     <script>
-        const REPO = "psychjun/shilla-training"; // 팀장님 저장소 이름 확인
+        const REPO = "psychjun/shilla-training"; 
         let photos = []; let currentIdx = 0; let corrects = 0; let timer; let audioCtx;
 
-        // 비프음 생성 함수 (타이머용)
         function playBeep(freq, duration) {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.frequency.value = freq; gain.gain.value = 0.1;
+            osc.frequency.value = freq; gain.gain.value = 0.05;
             osc.start(); setTimeout(() => osc.stop(), duration);
         }
 
         async function initQuiz() {
             document.getElementById('start-screen').classList.add('hidden');
             document.getElementById('quiz-container').classList.remove('hidden');
-            
-            // 사진 목록 가져오기 (로고 및 배경 제외)
             const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
             const data = await res.json();
             photos = data.filter(f => f.name.endsWith('.jpg') && !f.name.includes('logo') && f.name !== 'shilla_center.jpg' && f.name !== 'food_menu.jpg')
-                         .map(f => f.name)
-                         .sort(() => Math.random() - 0.5);
-            
+                         .map(f => f.name).sort(() => Math.random() - 0.5);
             showQuestion();
         }
 
@@ -119,21 +116,11 @@
             const display = document.getElementById('timer-display');
             display.classList.remove('timer-danger');
             clearInterval(timer);
-            
             timer = setInterval(() => {
                 timeLeft -= 0.1;
                 display.innerText = timeLeft.toFixed(1);
-                
-                if (timeLeft <= 3.0 && timeLeft > 0) {
-                    playBeep(600, 50); // 3초 전부터 삑삑
-                    display.classList.add('timer-danger');
-                }
-                
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    playBeep(300, 300); // 땡!
-                    handleAnswer(false);
-                }
+                if (timeLeft <= 3.0 && timeLeft > 0) playBeep(600, 50);
+                if (timeLeft <= 0) { clearInterval(timer); handleAnswer(false); }
             }, 100);
         }
 
@@ -142,47 +129,34 @@
             const fullName = photos[currentIdx].split('.')[0].split('_')[0]; 
             const overlay = document.getElementById('feedback-overlay');
             const icon = document.getElementById('feedback-icon');
-            
             overlay.style.opacity = "1";
             if (isCorrect) {
                 icon.innerText = "⭕"; icon.style.color = "#22c55e";
-                corrects++;
-                playBeep(800, 100);
+                corrects++; playBeep(800, 100);
             } else {
                 icon.innerText = "❌"; icon.style.color = "#ef4444";
                 document.getElementById('correct-answer-text').innerText = "정답: " + fullName;
                 playBeep(200, 300);
             }
-
-            setTimeout(() => {
-                currentIdx++;
-                showQuestion();
-            }, 1500);
+            setTimeout(() => { currentIdx++; showQuestion(); }, 1500);
         }
 
         function showResult() {
             document.getElementById('quiz-container').classList.add('hidden');
             document.getElementById('result-section').classList.remove('hidden');
-            const acc = Math.round((corrects / photos.length) * 100);
+            const acc = Math.round((corrects / (photos.length || 1)) * 100);
             document.getElementById('accuracy').innerText = acc + "%";
             document.getElementById('correct-count').innerText = corrects;
             document.getElementById('total-quiz').innerText = photos.length;
         }
 
-        // 음성 인식 설정
         const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (Speech) {
             const recognition = new Speech();
             recognition.lang = 'ko-KR';
-            recognition.interimResults = false;
-
-            document.getElementById('mic-btn').onclick = () => {
-                try { recognition.start(); } catch(e) {}
-            };
-
+            document.getElementById('mic-btn').onclick = () => { try { recognition.start(); } catch(e) {} };
             recognition.onstart = () => document.getElementById('mic-btn').classList.add('mic-active');
             recognition.onend = () => document.getElementById('mic-btn').classList.remove('mic-active');
-            
             recognition.onresult = (event) => {
                 const speechResult = event.results[0][0].transcript.replace(/\s/g, "");
                 const answer = photos[currentIdx].split('.')[0].split('_')[0];
