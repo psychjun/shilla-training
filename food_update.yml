@@ -1,0 +1,32 @@
+name: Weekly Food Menu Update
+
+on:
+  schedule:
+    - cron: '0 21 * * 0' # 한국시간 월요일 오전 6시
+  workflow_dispatch: # 이 문구가 있어야 [Run workflow] 버튼이 생겨!
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+
+      - name: Run update script
+        run: python update_food.py
+
+      - name: Commit and Push
+        run: |
+          git config --global user.name 'GitHub Action'
+          git config --global user.email 'action@github.com'
+          git add food_menu.jpg
+          git commit -m "Auto-update food menu" || exit 0
+          git push
