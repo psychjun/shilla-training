@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CJ Food Menu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #000; color: white; margin: 0; }
+        .menu-container { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+    <header onclick="location.href='index.html'" class="w-full p-3 flex justify-between items-center z-50 bg-white shadow-md h-12 cursor-pointer">
+        <img src="freezone_logo.png" alt="Freezone" class="h-6 w-auto">
+        <div class="text-black text-xs font-bold font-sans">HOME</div>
+    </header>
+
+    <main class="flex-grow flex flex-col items-center p-4">
+        <div class="w-full max-w-md space-y-4">
+            <div class="text-center py-4">
+                <h2 class="text-2xl font-bold text-[#d4af37]">오늘의 식단표</h2>
+                <p class="text-gray-400 text-xs mt-1">씨제이 [사업지원센터점]</p>
+            </div>
+
+            <div class="menu-container rounded-2xl overflow-hidden shadow-2xl">
+                <img id="food-img" src="food_menu.jpg" alt="식단표 로딩 중..." 
+                     onerror="this.src='https://via.placeholder.com/400x600?text=Updating+Menu...'"
+                     class="w-full h-auto">
+            </div>
+
+            <div class="bg-gray-900/50 p-4 rounded-xl border border-gray-800">
+                <p class="text-[10px] text-gray-500 leading-relaxed">
+                    * 식단표는 매주 월요일 오전 7시 이전에 자동으로 업데이트됩니다.<br>
+                    * 업데이트가 안 보일 경우 페이지를 새로고침 해주세요.
+                </p>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

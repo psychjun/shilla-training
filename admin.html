@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #000; color: white; }
+        .tab-btn.active { border-bottom: 2px solid #d4af37; color: #d4af37; }
+    </style>
+</head>
+<body class="p-6">
+    <div class="max-w-md mx-auto space-y-8">
+        <header class="flex justify-between items-center border-b border-gray-800 pb-4">
+            <h1 class="text-xl font-bold text-[#d4af37]">관리자 모드</h1>
+            <button onclick="location.href='index.html'" class="text-xs text-gray-500">나가기</button>
+        </header>
+
+        <div class="flex space-x-4 border-b border-gray-800">
+            <button id="tab-up" onclick="switchTab('upload')" class="tab-btn active py-2 flex-1">사진 등록</button>
+            <button id="tab-del" onclick="switchTab('delete')" class="tab-btn py-2 flex-1">사진 삭제</button>
+        </div>
+
+        <input type="password" id="gh-token" placeholder="GitHub 토큰을 입력하세요" class="w-full p-3 bg-gray-900 border border-gray-700 rounded text-sm">
+
+        <div id="section-upload" class="space-y-4">
+            <input type="text" id="up-name" placeholder="직원 이름" class="w-full p-3 bg-gray-900 border border-gray-700 rounded">
+            <input type="file" id="up-file" accept="image/*" class="text-sm text-gray-400">
+            <button onclick="handleUpload()" class="w-full bg-[#d4af37] text-black font-bold py-3 rounded-xl">자동 번호로 등록</button>
+        </div>
+
+        <div id="section-delete" class="hidden space-y-4">
+            <div class="flex space-x-2">
+                <input type="text" id="del-search" placeholder="삭제할 이름 검색" class="flex-1 p-3 bg-gray-900 border border-gray-700 rounded">
+                <button onclick="searchPhotos()" class="px-4 bg-gray-700 rounded">검색</button>
+            </div>
+            <div id="thumb-container" class="grid grid-cols-3 gap-2 min-h-[100px] p-2 bg-gray-900 rounded">
+                </div>
+            <button onclick="deleteSelected()" id="del-btn" class="hidden w-full bg-red-600 text-white font-bold py-3 rounded-xl">선택한 사진 삭제</button>
+        </div>
+
+        <div id="status" class="text-center text-xs font-bold text-emerald-400 h-4"></div>
+    </div>
+
+    <script>
+        const REPO = "psychjun/shilla-training";
+        let selectedFiles = [];
+
+        window.onload = () => {
+            const token = localStorage.getItem('gh_pat');
+            if(token) document.getElementById('gh-token').value = token;
+            if(sessionStorage.getItem('userRole') !== 'master') { alert('권한이 없습니다.'); location.href='index.html'; }
+        };
+
+        function switchTab(type) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('section-upload').classList.add('hidden');
+            document.getElementById('section-delete').classList.add('hidden');
+            
+            if(type === 'upload') {
+                document.getElementById('tab-up').classList.add('active');
+                document.getElementById('section-upload').classList.remove('hidden');
+            } else {
+                document.getElementById('tab-del').classList.add('active');
+                document.getElementById('section-delete').classList.remove('hidden');
+            }
+        }
+
+        // --- 업로드 로직 ---
+        async function handleUpload() {
+            const token = document.getElementById('gh-token').value;
+            const name = document.getElementById('up-name').value;
+            const file = document.getElementById('up-file').files[0];
+            if(!token || !name || !file) return alert("입력 확인!");
+            localStorage.setItem('gh_pat', token);
+
+            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
+            const files = await res.json();
+            let max = 0;
+            files.forEach(f => {
+                if(f.name.startsWith(name + "_")) {
+                    const n = parseInt(f.name.split('_')[1]);
+                    if(n > max) max = n;
+                }
+            });
+
+            const fileName = `${name}_${max+1}.jpg`;
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = async () => {
+                const base64 = reader.result.split(',')[1];
+                const upRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${fileName}`, {
+                    method: "PUT",
+                    headers: { "Authorization": `token ${token}` },
+                    body: JSON.stringify({ message: `Upload ${fileName}`, content: base64 })
+                });
+                if(upRes.ok) { alert("업로드 성공!"); location.reload(); }
+            };
+        }
+
+        // --- 삭제 로직 ---
+        async function searchPhotos() {
+            const name = document.getElementById('del-search').value;
+            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
+            const allFiles = await res.json();
+            const filtered = allFiles.filter(f => f.name.startsWith(name + "_") && f.name.endsWith(".jpg"));
+            
+            const container = document.getElementById('thumb-container');
+            container.innerHTML = "";
+            selectedFiles = [];
+            
+            filtered.forEach(f => {
+                const div = document.createElement('div');
+                div.className = "relative aspect-square border-2 border-transparent cursor-pointer";
+                div.innerHTML = `<img src="${f.download_url}" class="w-full h-full object-cover">`;
+                div.onclick = () => {
+                    div.classList.toggle('border-red-600');
+                    if(selectedFiles.includes(f)) selectedFiles = selectedFiles.filter(i => i !== f);
+                    else selectedFiles.push(f);
+                    document.getElementById('del-btn').classList.toggle('hidden', selectedFiles.length === 0);
+                };
+                container.appendChild(div);
+            });
+        }
+
+        async function deleteSelected() {
+            const token = document.getElementById('gh-token').value;
+            if(!confirm(`${selectedFiles.length}개의 사진을 삭제하시겠습니까?`)) return;
+
+            for(const file of selectedFiles) {
+                await fetch(`https://api.github.com/repos/${REPO}/contents/${file.name}`, {
+                    method: "DELETE",
+                    headers: { "Authorization": `token ${token}` },
+                    body: JSON.stringify({ message: `Delete ${file.name}`, sha: file.sha })
+                });
+            }
+            alert("삭제 완료!");
+            searchPhotos();
+        }
+    </script>
+</body>
+</html>
