@@ -6,87 +6,83 @@
     <title>Freezone Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
         body { font-family: 'Noto Sans KR', sans-serif; background-color: #000; color: white; margin: 0; overflow: hidden; height: 100dvh; }
-        .app-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.2s; }
-        .app-card:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.2); }
+        .app-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.2s; }
+        .app-card:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.25); }
         .bg-shilla { background-image: url('shilla_center.jpg'); background-size: cover; background-position: center; }
     </style>
 </head>
 <body class="bg-shilla flex flex-col items-center">
-    <div class="absolute inset-0 bg-black/70 z-0"></div>
+    <div class="absolute inset-0 bg-black/75 z-0"></div>
 
     <header class="w-full p-3 flex justify-between items-center z-50 bg-white shadow-md h-12">
         <img src="freezone_logo.png" alt="Freezone" class="h-6 w-auto">
         <img src="shilla_logo.png" alt="Shilla" class="h-4 w-auto">
     </header>
 
-    <main class="relative z-10 w-full max-w-sm flex-grow flex flex-col items-center pt-10 px-6">
-        <div id="login-section" class="w-full space-y-6 mt-10">
-            <div class="text-center mb-10">
-                <h1 class="text-4xl font-black text-[#d4af37] tracking-tighter">FREEZONE</h1>
-                <p class="text-gray-400 text-sm mt-2">안전근무를 위한 통합 포털</p>
+    <main class="relative z-10 w-full max-w-sm flex-grow flex flex-col items-center pt-12 px-8">
+        <div id="login-section" class="w-full space-y-8 mt-10">
+            <div class="text-center">
+                <h1 class="text-5xl font-black text-[#d4af37] tracking-tighter mb-2">FREEZONE</h1>
+                <p class="text-gray-400 text-xs tracking-widest uppercase">Security Portal</p>
             </div>
             <div class="space-y-3">
-                <input type="text" id="user-id" placeholder="ID (1st, 2nd, 3rd, master)" class="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white outline-none focus:border-[#d4af37]">
-                <input type="password" id="user-pw" placeholder="Password" class="w-full p-4 bg-white/10 border border-white/20 rounded-xl text-white outline-none focus:border-[#d4af37]">
-                <button onclick="checkLogin()" class="w-full bg-[#d4af37] text-black font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all">로그인</button>
+                <input type="text" id="user-id" placeholder="ID" class="w-full p-4 bg-white/10 border border-white/20 rounded-2xl text-white outline-none focus:border-[#d4af37] transition-all">
+                <input type="password" id="user-pw" placeholder="Password" class="w-full p-4 bg-white/10 border border-white/20 rounded-2xl text-white outline-none focus:border-[#d4af37] transition-all">
+                <button onclick="checkLogin()" class="w-full bg-[#d4af37] text-black font-black py-4 rounded-2xl shadow-xl active:scale-95 transition-all mt-4">로그인</button>
             </div>
-            <p id="login-error" class="text-red-500 text-xs text-center h-4"></p>
+            <p id="login-error" class="text-red-500 text-xs text-center h-4 font-bold"></p>
         </div>
 
         <div id="menu-section" class="hidden w-full h-full flex flex-col">
-            <div class="flex justify-between items-end mb-8">
+            <div class="flex justify-between items-start mb-10">
                 <div>
-                    <h2 class="text-2xl font-bold text-white"><span id="welcome-user"></span>,</h2>
-                    <p class="text-[#d4af37] text-sm">오늘도 안전근무 하십시오.</p>
+                    <h2 class="text-3xl font-black text-white"><span id="welcome-user"></span>,</h2>
+                    <p class="text-[#d4af37] font-bold mt-1">오늘도 안전근무 하십시오.</p>
                 </div>
-                <button onclick="logout()" class="text-xs text-gray-400 underline">로그아웃</button>
+                <button onclick="logout()" class="text-[10px] text-gray-500 border border-gray-700 px-2 py-1 rounded-md">로그아웃</button>
             </div>
 
-            <div class="grid grid-cols-3 gap-4 w-full">
+            <div class="grid grid-cols-3 gap-6 w-full">
                 <button onclick="location.href='quiz.html'" class="flex flex-col items-center space-y-2">
-                    <div class="app-card w-16 h-16 rounded-2xl flex items-center justify-center text-2xl">👤</div>
-                    <span class="text-[10px] font-medium">이름 맞추기</span>
+                    <div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">👤</div>
+                    <span class="text-[11px] font-bold text-gray-300">이름 맞추기</span>
                 </button>
                 <button onclick="location.href='food.html'" class="flex flex-col items-center space-y-2">
-                    <div class="app-card w-16 h-16 rounded-2xl flex items-center justify-center text-2xl">🍱</div>
-                    <span class="text-[10px] font-medium">구내식당</span>
+                    <div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">🍱</div>
+                    <span class="text-[11px] font-bold text-gray-300">구내식당</span>
                 </button>
                 <button onclick="goToAdmin()" class="flex flex-col items-center space-y-2">
-                    <div class="app-card w-16 h-16 rounded-2xl flex items-center justify-center text-2xl">⚙️</div>
-                    <span class="text-[10px] font-medium text-[#d4af37]">관리자</span>
+                    <div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">⚙️</div>
+                    <span class="text-[11px] font-bold text-[#d4af37]">관리자</span>
                 </button>
-                <div class="flex flex-col items-center space-y-2 opacity-30"><div class="app-card w-16 h-16 rounded-2xl flex items-center justify-center text-2xl">🔦</div><span class="text-[10px] font-medium">순찰</span></div>
-                <div class="flex flex-col items-center space-y-2 opacity-30"><div class="app-card w-16 h-16 rounded-2xl flex items-center justify-center text-2xl">🛡️</div><span class="text-[10px] font-medium">출입검색</span></div>
-                <div class="flex flex-col items-center space-y-2 opacity-30"><div class="app-card w-16 h-16 rounded-2xl flex items-center justify-center text-2xl">🚨</div><span class="text-[10px] font-medium">비상연락</span></div>
+                <div class="flex flex-col items-center space-y-2 opacity-25"><div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">🔦</div><span class="text-[11px]">순찰</span></div>
+                <div class="flex flex-col items-center space-y-2 opacity-25"><div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">🛡️</div><span class="text-[11px]">출입검색</span></div>
+                <div class="flex flex-col items-center space-y-2 opacity-25"><div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">🚨</div><span class="text-[11px]">비상연락</span></div>
             </div>
         </div>
     </main>
 
-    <footer class="relative z-10 w-full text-center pb-6 text-[10px] text-gray-500">
+    <footer class="relative z-10 w-full text-center pb-8 text-[11px] text-gray-600 font-bold tracking-widest">
         Made by Jeong Ho-jun
     </footer>
 
     <script>
-        // 호칭 맵핑 (요청하신 대로 수정)
         const NAMES = { "1st": "1조", "2nd": "2조", "3rd": "3조", "master": "Master" };
+        const USERS = { "1st": "freezone1011", "2nd": "freezone2022", "3rd": "freezone3033", "master": "freezone9999" };
 
         function checkLogin() {
             const id = document.getElementById('user-id').value;
             const pw = document.getElementById('user-pw').value;
-            
-            // 비밀번호 (현재 하드코딩, 추후 admin에서 수정 가능하게 연동 예정)
-            const USERS = { "1st": "freezone1011", "2nd": "freezone2022", "3rd": "freezone3033", "master": "freezone9999" };
-
             if (USERS[id] && USERS[id] === pw) {
                 sessionStorage.setItem('isLoggedIn', 'true');
                 sessionStorage.setItem('userRole', id);
                 
-                // [접속 기록 기록] - 로컬 스토리지에 저장 (달력용)
-                const log = JSON.parse(localStorage.getItem('loginLogs') || '[]');
-                log.push({ user: NAMES[id], time: new Date().toLocaleString() });
-                localStorage.setItem('loginLogs', JSON.stringify(log));
+                // 접속 기록 (브라우저 로컬 저장)
+                let logs = JSON.parse(localStorage.getItem('loginLogs') || '[]');
+                logs.push({ user: NAMES[id], time: new Date().toLocaleString() });
+                localStorage.setItem('loginLogs', JSON.stringify(logs));
 
                 showMenu(id);
             } else {
@@ -102,7 +98,7 @@
 
         function logout() {
             sessionStorage.clear();
-            location.replace('index.html'); // 즉시 반영 및 페이지 새로고침 효과
+            location.replace('index.html');
         }
 
         function goToAdmin() {
@@ -114,9 +110,7 @@
         }
 
         window.onload = () => {
-            if (sessionStorage.getItem('isLoggedIn') === 'true') {
-                showMenu(sessionStorage.getItem('userRole'));
-            }
+            if (sessionStorage.getItem('isLoggedIn') === 'true') showMenu(sessionStorage.getItem('userRole'));
         };
     </script>
 </body>
