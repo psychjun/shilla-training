@@ -2,32 +2,59 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patrol Manual</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Patrol Manual - Shilla Security</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #000; color: white; margin: 0; }
+        .manual-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 24px; }
+        .fz-green { color: #10b981; }
+    </style>
 </head>
-<body class="bg-black text-white p-6">
-    <header class="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
-        <h1 class="text-2xl font-black text-[#10b981]">순찰업무 매뉴얼</h1>
-        <button onclick="location.href='index.html'" class="text-xs text-gray-500">닫기</button>
+<body class="flex flex-col items-center">
+    <header class="w-full p-3 flex justify-between items-center z-50 bg-white shadow-md h-14" onclick="location.href='index.html'">
+        <img src="freezone_logo.png" alt="Freezone" class="h-6 w-auto">
+        <img src="shilla_logo.png" alt="Shilla" class="h-7 w-auto"> 
     </header>
 
-    <div class="space-y-6">
-        <section class="bg-gray-900 p-4 rounded-xl">
-            <h2 class="text-[#d4af37] font-bold mb-2">1. 외곽 순찰 루트</h2>
-            <p class="text-sm text-gray-400 leading-relaxed">
-                현재 외곽 A구역부터 C구역까지 매 시 정각 순찰을 실시합니다. 특히 야간에는 열화상 카메라를 활용하여 담장 부근의 이상 징후를 면밀히 파악해야 합니다.
-            </p>
-        </section>
+    <main class="w-full max-w-sm px-6 pt-10 flex flex-col min-h-[calc(100dvh-56px)]">
+        <div class="mb-8">
+            <h2 class="text-4xl font-black italic tracking-tighter uppercase"><span class="fz-green">P</span>atrol</h2>
+            <p class="text-gray-500 font-bold text-xs uppercase tracking-widest">Task Operation Manual</p>
+        </div>
 
-        <section class="bg-gray-900 p-4 rounded-xl">
-            <h2 class="text-[#d4af37] font-bold mb-2">2. 체크포인트 점검항목</h2>
-            <ul class="text-xs text-gray-400 space-y-2 list-disc pl-4">
-                <li>비상계단 적치물 방치 여부 확인</li>
-                <li>소화전 전면 공간 확보 상태 점검</li>
-                <li>각 층 탕비실 전열기구 전원 차단 확인</li>
-            </ul>
-        </section>
-    </div>
+        <div class="manual-card p-6 flex-grow shadow-2xl relative overflow-hidden mb-10">
+            <div class="absolute top-0 right-0 p-4 opacity-10">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            </div>
+            
+            <div id="manual-content" class="text-gray-200 text-sm leading-relaxed whitespace-pre-wrap">
+                데이터를 불러오는 중...
+            </div>
+        </div>
+
+        <button onclick="location.href='index.html'" class="w-full bg-[#10b981] text-black font-black py-5 rounded-2xl mb-10 shadow-lg active:scale-95 transition-all">메인으로 돌아가기</button>
+    </main>
+
+    <script>
+        const REPO = "psychjun/shilla-training";
+        
+        async function loadManual() {
+            const contentDiv = document.getElementById('manual-content');
+            try {
+                // 캐시 방지 타임스탬프 추가하여 실시간 조회
+                const res = await fetch(`https://raw.githubusercontent.com/${REPO}/main/patrol_manual.json?t=${Date.now()}`);
+                const data = await res.json();
+                contentDiv.innerText = data.content;
+            } catch(e) {
+                contentDiv.innerText = "매뉴얼을 불러오지 못했습니다. 관리자에게 문의하세요.";
+            }
+        }
+
+        window.onload = loadManual;
+    </script>
 </body>
 </html>
