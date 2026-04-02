@@ -12,7 +12,7 @@
         .fz-stretch { display: inline-block; transform: scaleY(1.35); transform-origin: center; }
         .fz-green { color: #10b981; } /* 시그니처 초록색 */
 
-        /* 마이크 에메랄드 회전 글로우 효과 (오리지널 디자인) */
+        /* 마이크 에메랄드 회전 글로우 효과 */
         .mic-wrapper { position: relative; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.3s ease; }
         .mic-wrapper.mic-active::before { 
             content: ""; position: absolute; inset: -5px; border-radius: 50%; 
@@ -54,6 +54,7 @@
                     <span class="bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-[0.1em]">Staff</span>
                 </div>
                 <p class="text-[9px] font-medium uppercase tracking-[0.05em] text-[#d4af37]">Recognition Training Tool</p>
+                <p class="text-[8px] font-light uppercase tracking-[0.15em] text-gray-400">Training for new employees</p>
             </div>
 
             <div class="space-y-4">
@@ -116,7 +117,6 @@
         const REPO = "psychjun/shilla-training";
         let photos = []; let currentIdx = 0; let corrects = 0; let timerObj; let timeLeft = 10.0;
         
-        // [소리 기능] Web Audio API
         let audioCtx = null;
         function playBuzzer() {
             if (!audioCtx) return;
