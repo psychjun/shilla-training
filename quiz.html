@@ -3,195 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Shilla Name Quiz</title>
+    <title>Shilla Names - Training Tool</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: #0b0b0b; color: white; margin: 0; overflow: hidden; height: 100dvh; }
-        .quiz-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 30px; }
-        .timer-bar { transition: width 0.1s linear; background: #10b981; height: 4px; position: absolute; top: 0; left: 0; }
-        .ans-btn { background: #1a1a1a; border: 1px solid #333; transition: 0.2s; cursor: pointer; }
-        .ans-btn:active { transform: scale(0.95); background: #333; }
-        /* 피드백 애니메이션 */
-        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-        .fade-out { animation: fadeOut 0.8s forwards; }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400;500;700;900&family=Playfair+Display:wght@600&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #000; color: white; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; height: 100dvh; width: 100%; overflow: hidden; position: fixed; }
+        .eng-title { font-family: 'Playfair Display', serif; }
+        .fz-stretch { display: inline-block; transform: scaleY(1.35); transform-origin: center; }
+        .fz-green { color: #10b981; } /* 시그니처 초록색 */
+
+        /* 마이크 푸른색/에메랄드 회전 글로우 효과 (팀장님이 말씀하신 그 디자인!) */
+        .mic-wrapper { position: relative; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.3s ease; }
+        .mic-wrapper.mic-active::before { 
+            content: ""; position: absolute; inset: -5px; border-radius: 50%; 
+            background: conic-gradient(from 0deg, transparent 30%, #10b981 50%, transparent 70%); 
+            animation: spin 1s linear infinite; z-index: 0; filter: blur(3px); 
+        }
+        .mic-wrapper.mic-active::after { 
+            content: ""; position: absolute; inset: -2px; border-radius: 50%; 
+            background: #10b981; opacity: 0.3; filter: blur(15px); z-index: 0; 
+            animation: pulse-glow 1.5s ease-in-out infinite alternate; 
+        }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes pulse-glow { from { opacity: 0.2; transform: scale(1); } to { opacity: 0.5; transform: scale(1.1); } }
+
+        #mic-btn { position: relative; z-index: 10; width: 68px; height: 68px; border-radius: 50%; background-color: #e11d48; transition: all 0.3s ease; border: none; outline: none; cursor: pointer; }
+        .mic-active #mic-btn { background-color: #064e3b !important; transform: scale(0.95); }
+        
+        .timer-danger { color: #ef4444 !important; animation: shake 0.2s infinite; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-2px); } 75% { transform: translateX(2px); } }
     </style>
 </head>
-<body class="flex flex-col items-center">
-    <header class="w-full p-3 flex justify-between items-center z-50 bg-white shadow-md h-14">
-        <div class="text-black font-black text-lg cursor-pointer" onclick="location.href='index.html'"><span class="text-[#10b981]">Q</span>UIZ</div>
-        <img src="shilla_logo.png" alt="Shilla" class="h-7 w-auto">
+<body class="flex flex-col relative" style="background-image: url('shilla_center.jpg'); background-size: cover; background-position: center;">
+    <div class="absolute inset-0 bg-black/85 z-0"></div>
+
+    <header onclick="location.href='index.html'" class="w-full p-3 flex justify-between items-center z-50 bg-white shadow-md h-12 cursor-pointer active:opacity-70">
+        <img src="freezone_logo.png" alt="Freezone" class="h-6 w-auto object-contain">
+        <img src="shilla_logo.png" alt="Shilla" class="h-4 w-auto object-contain">
     </header>
 
-    <main class="w-full max-w-sm px-6 pt-10 flex-grow flex flex-col items-center relative h-[calc(100dvh-56px)] overflow-hidden">
-        <div class="w-full bg-gray-800 h-1 mt-4 relative overflow-hidden rounded-full">
-            <div id="timer-progress" class="timer-bar w-full"></div>
-        </div>
+    <main class="flex-grow flex flex-col items-center px-6 relative z-10 h-[calc(100dvh-48px)] overflow-hidden">
         
-        <div class="flex justify-between w-full mt-2 px-1">
-            <span id="score-display" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Score: 0</span>
-            <span id="timer-text" class="text-xl font-black text-[#10b981]">10.0</span>
-        </div>
-
-        <div class="quiz-card w-full aspect-square mt-6 relative overflow-hidden flex items-center justify-center border-2 border-[#10b981]/30">
-            <img id="staff-img" src="" class="w-full h-full object-cover rounded-[28px]">
-            <div id="feedback" class="absolute inset-0 flex items-center justify-center text-9xl font-black hidden z-20"></div>
-        </div>
-
-        <div id="choice-container" class="grid grid-cols-2 gap-3 w-full mt-8">
+        <div id="start-section" class="w-full max-w-sm h-full flex flex-col justify-between py-8">
+            <div class="text-right flex flex-col items-end space-y-1">
+                <p class="text-[14px] font-black tracking-[0.2em] leading-tight fz-stretch text-white">
+                    <span class="fz-green">F</span>reez<span class="fz-green">o</span>ne
+                </p>
+                <div class="inline-flex border border-white rounded-[1px] overflow-hidden">
+                    <span class="bg-black text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-[0.1em]">Shilla</span>
+                    <span class="bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-[0.1em]">Staff</span>
+                </div>
+                <p class="text-[9px] font-medium uppercase tracking-[0.05em] text-[#d4af37]">Recognition Training Tool</p>
             </div>
 
-        <button id="start-btn" onclick="startGame()" class="w-full bg-[#10b981] text-black font-black py-5 rounded-2xl mt-10 shadow-lg shadow-green-900/20 active:scale-95 transition-all z-30">
-            게임 시작 (소리 활성화)
-        </button>
+            <div class="space-y-4">
+                <div class="text-center">
+                    <h2 class="text-6xl eng-title font-bold tracking-tighter text-white leading-none">Shilla <span class="text-[#d4af37]">Names</span></h2>
+                    <p class="text-2xl text-white font-light mt-2">임직원 이름 맞추기</p>
+                </div>
+                <div class="bg-white/5 backdrop-blur-md py-6 rounded-2xl border border-white/10 text-center mx-4 shadow-2xl">
+                    <p class="text-gray-400 text-xs">학습 가능한 사진</p>
+                    <p class="text-5xl font-black text-[#d4af37] py-0.5"><span id="total-count">...</span></p>
+                </div>
+            </div>
+            
+            <div class="px-2 pb-6 space-y-3">
+                <button id="start-btn" onclick="startGame()" disabled class="w-full bg-gray-600 text-black text-2xl font-black py-6 rounded-2xl shadow-xl active:scale-95 transition-all">
+                    데이터 로딩 중...
+                </button>
+                <p class="text-[10px] font-normal italic tracking-wide text-gray-500 text-right pr-2">
+                    제작 : <span class="ml-1">정호준</span>
+                </p>
+            </div>
+        </div>
 
-        <footer class="absolute bottom-4 right-6 text-[10px] font-normal italic tracking-wide text-gray-600">
-            제작 : <span class="ml-1 text-gray-500">정호준</span>
-        </footer>
+        <div id="quiz-section" class="hidden w-full max-w-sm flex flex-col h-full space-y-4 py-4">
+            <div class="relative w-full flex-1 bg-black rounded-3xl border-2 border-[#d4af37] overflow-hidden shadow-2xl">
+                <div class="w-full h-full flex items-center justify-center">
+                    <img id="employee-img" src="" alt="Employee" class="max-w-full max-h-full object-contain">
+                </div>
+                <div id="feedback-overlay" class="absolute inset-0 flex items-center justify-center opacity-0 bg-black/60 z-20 pointer-events-none transition-opacity">
+                    <div id="feedback-text" class="text-9xl font-bold"></div>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center space-y-3 pb-8">
+                <div id="result-feedback" class="text-xl font-bold h-7 text-[#d4af37] tracking-wider"></div>
+                <div id="timer-display" class="text-6xl font-black text-white italic tracking-tighter">10.0</div>
+                <div class="flex flex-col items-center w-full pt-2">
+                    <div id="mic-container" class="mic-wrapper mb-3">
+                        <button id="mic-btn" class="flex items-center justify-center shadow-lg active:scale-90 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-10 h-10 text-white">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <button onclick="handleAnswer(false)" class="px-8 py-2 text-gray-500 text-xs font-bold border-b border-gray-800 active:text-gray-300">몰라요 (PASS)</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="result-section" class="hidden w-full max-w-sm h-full flex flex-col justify-center space-y-10 pb-10">
+            <div class="bg-black/60 p-10 rounded-[40px] border-4 border-[#d4af37] text-center shadow-2xl">
+                <p id="accuracy" class="text-8xl font-black text-[#d4af37] eng-title">0%</p>
+                <p class="text-2xl text-white mt-4 font-bold"><span id="correct-count">0</span> / <span id="total-quiz">0</span> 정답</p>
+            </div>
+            <button onclick="location.reload()" class="w-full bg-white text-black py-5 rounded-2xl font-black text-xl shadow-xl active:scale-95 transition-all">다시 도전하기</button>
+        </div>
     </main>
 
     <script>
         const REPO = "psychjun/shilla-training";
-        let staffList = [];
-        let currentQuestion = null;
-        let score = 0;
-        let timeLeft = 10.0;
-        let timerInterval = null;
-        
-        // [핵심] 웹 오디오 API 컨텍스트 (브라우저 강제 소리 재생용)
-        let audioCtx = null;
+        let photos = []; let currentIdx = 0; let corrects = 0; let timerObj; let timeLeft = 10.0;
 
-        // 소리 재생 함수 (주파수 직접 제어 - 버저음)
-        function playBuzzerSound() {
-            if (!audioCtx) return;
-            try {
-                // 오디오 컨텍스트가 정지 상태라면 재개 (최초 클릭 후)
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-
-                oscillator.type = 'sine'; // 소리 형태 (사각형 파형)
-                oscillator.frequency.value = 800; // 주파수 (높은 삑 소리)
-                gainNode.gain.value = 0.1; // 볼륨 (0.0 ~ 1.0)
-
-                oscillator.start();
-                // 0.2초 후 소리 끔
-                setTimeout(() => oscillator.stop(), 200); 
-            } catch(e) {
-                console.log("오디오 재생 실패:", e);
-            }
-        }
-
-        window.onload = async () => {
+        // 사진 로드 및 식단표 필터링
+        async function loadPhotos() {
             try {
                 const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
                 const data = await res.json();
-                staffList = data.filter(f => f.name.endsWith('.jpg') && !f.name.includes('shilla_center'));
-            } catch(e) {
-                alert("데이터 로드 실패");
-            }
-        };
-
-        function startGame() {
-            // [중요] 최초 클릭 시 오디오 컨텍스트 활성화 (브라우저 정책 대응)
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-
-            score = 0;
-            document.getElementById('score-display').innerText = `Score: ${score}`;
-            document.getElementById('start-btn').classList.add('hidden');
-            nextQuestion();
+                // 식단표(food, menu) 및 로고, 배경이미지 철저히 제외
+                photos = data.filter(f => 
+                    f.name.endsWith('.jpg') && 
+                    !['shilla_center.jpg','freezone_logo.png','shilla_logo.png'].includes(f.name) &&
+                    !f.name.toLowerCase().includes('food') && 
+                    !f.name.toLowerCase().includes('menu')
+                ).map(f => f.name);
+                
+                document.getElementById('total-count').innerText = photos.length;
+                if (photos.length > 0) {
+                    const btn = document.getElementById('start-btn');
+                    btn.disabled = false;
+                    btn.innerText = "교 육 시 작";
+                    btn.classList.replace('bg-gray-600', 'bg-[#d4af37]');
+                }
+            } catch (e) { alert("데이터 로딩 실패!"); }
         }
 
-        function nextQuestion() {
-            if (staffList.length < 4) return alert("사진 데이터가 부족합니다.");
-            
-            const correctIdx = Math.floor(Math.random() * staffList.length);
-            currentQuestion = staffList[correctIdx];
-            const correctName = currentQuestion.name.split('_')[0]; 
+        function startGame() {
+            photos.sort(() => Math.random() - 0.5);
+            document.getElementById('start-section').classList.add('hidden');
+            document.getElementById('quiz-section').classList.remove('hidden');
+            showQuestion();
+        }
 
-            let choices = [correctName];
-            while(choices.length < 4) {
-                let randName = staffList[Math.floor(Math.random() * staffList.length)].name.split('_')[0];
-                if(!choices.includes(randName)) choices.push(randName);
-            }
-            choices.sort(() => Math.random() - 0.5);
-
-            document.getElementById('staff-img').src = currentQuestion.download_url;
-            const btnBox = document.getElementById('choice-container');
-            btnBox.innerHTML = choices.map(name => `
-                <button onclick="checkAnswer('${name}', '${correctName}')" class="ans-btn py-4 rounded-xl font-bold text-sm text-gray-200">
-                    ${name}
-                </button>
-            `).join('');
-
+        function showQuestion() {
+            if (currentIdx >= photos.length) { showResult(); return; }
+            document.getElementById('feedback-overlay').style.opacity = "0";
+            document.getElementById('employee-img').src = photos[currentIdx];
+            document.getElementById('result-feedback').innerText = "";
             startTimer();
         }
 
         function startTimer() {
+            clearInterval(timerObj);
             timeLeft = 10.0;
-            updateTimerUI();
-            if(timerInterval) clearInterval(timerInterval);
-
-            // 0.1초 단위로 타이머 갱신 (더 부드럽게)
-            timerInterval = setInterval(() => {
+            const disp = document.getElementById('timer-display');
+            disp.innerText = "10.0";
+            disp.classList.remove('timer-danger');
+            timerObj = setInterval(() => {
                 timeLeft -= 0.1;
-                updateTimerUI();
-
-                if(timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    timeLeft = 0;
-                    updateTimerUI();
-                    
-                    playBuzzerSound(); // [원복 기능] 시간 초과 시 소리 재생 (삑!)
-                    showFeedback(false);
-                    setTimeout(nextQuestion, 1200);
-                }
+                disp.innerText = Math.max(0, timeLeft).toFixed(1);
+                if (timeLeft <= 3.0) disp.classList.add('timer-danger');
+                if (timeLeft <= 0) { clearInterval(timerObj); handleAnswer(false); }
             }, 100);
         }
 
-        function updateTimerUI() {
-            document.getElementById('timer-text').innerText = timeLeft.toFixed(1);
-            // 진행바 너비 (0% ~ 100%)
-            document.getElementById('timer-progress').style.width = (timeLeft * 10) + "%";
-            // 3초 남았을 때 빨간색 강조
-            document.getElementById('timer-text').style.color = timeLeft <= 3.0 ? "#ef4444" : "#10b981";
-        }
-
-        function checkAnswer(selected, correct) {
-            clearInterval(timerInterval);
-            if(selected === correct) {
-                score += 10;
-                document.getElementById('score-display').innerText = `Score: ${score}`;
-                showFeedback(true);
+        function handleAnswer(isCorrect) {
+            clearInterval(timerObj);
+            const name = photos[currentIdx].split('_')[0].split('.')[0];
+            const overlay = document.getElementById('feedback-overlay');
+            const text = document.getElementById('feedback-text');
+            overlay.style.opacity = "1";
+            
+            if (isCorrect) {
+                text.innerText = "✅"; text.style.color = "#22c55e"; corrects++;
             } else {
-                playBuzzerSound(); // [원복 기능] 오답 시에도 소리 재생 (삑!)
-                showFeedback(false);
+                text.innerText = "❌"; text.style.color = "#ef4444";
+                document.getElementById('result-feedback').innerText = "정답: " + name;
             }
-            setTimeout(nextQuestion, 1200);
+            
+            setTimeout(() => { currentIdx++; showQuestion(); }, 1500);
         }
 
-        function showFeedback(isCorrect) {
-            const fb = document.getElementById('feedback');
-            fb.innerText = isCorrect ? "O" : "X";
-            fb.style.color = isCorrect ? "#10b981" : "#ef4444";
-            fb.classList.remove('hidden', 'fade-out');
-            
-            // 0.8초 후 페이드아웃 애니메이션 적용
-            setTimeout(() => {
-                fb.classList.add('fade-out');
-            }, 400);
-            
-            // 1.2초 후 완전히 숨김
-            setTimeout(() => {
-                fb.classList.add('hidden');
-            }, 1200);
+        function showResult() {
+            document.getElementById('quiz-section').classList.add('hidden');
+            document.getElementById('result-section').classList.remove('hidden');
+            document.getElementById('accuracy').innerText = Math.round((corrects / photos.length) * 100) + "%";
+            document.getElementById('correct-count').innerText = corrects;
+            document.getElementById('total-quiz').innerText = photos.length;
         }
+
+        // 음성 인식 로직
+        const SRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SRec) {
+            const rec = new SRec(); rec.lang = 'ko-KR'; rec.continuous = false;
+            const micCont = document.getElementById('mic-container');
+            const micBtn = document.getElementById('mic-btn');
+
+            micBtn.onclick = () => { try { rec.start(); } catch(e) {} };
+            rec.onstart = () => micCont.classList.add('mic-active');
+            rec.onend = () => micCont.classList.remove('mic-active');
+            rec.onresult = (e) => {
+                const result = e.results[0][0].transcript.replace(/\s/g, "");
+                const answer = photos[currentIdx].split('_')[0].split('.')[0];
+                handleAnswer(result.includes(answer));
+            };
+        }
+
+        window.onload = loadPhotos;
     </script>
 </body>
 </html>
