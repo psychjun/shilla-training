@@ -9,45 +9,37 @@
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
         body { font-family: 'Noto Sans KR', sans-serif; background-color: #0b0b0b; color: white; margin: 0; overflow: hidden; height: 100dvh; }
         .quiz-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 30px; }
-        .timer-bar { transition: width 0.1s linear; background: #10b981; height: 4px; position: absolute; top: 0; left: 0; }
-        .ans-btn { background: #1a1a1a; border: 1px solid #333; transition: 0.2s; cursor: pointer; }
+        .timer-bar { transition: width 1s linear; background: #10b981; height: 4px; position: absolute; top: 0; left: 0; }
+        .ans-btn { background: #1a1a1a; border: 1px solid #333; transition: 0.2s; }
         .ans-btn:active { transform: scale(0.95); background: #333; }
-        /* 피드백 애니메이션 */
-        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
-        .fade-out { animation: fadeOut 0.8s forwards; }
     </style>
 </head>
 <body class="flex flex-col items-center">
     <header class="w-full p-3 flex justify-between items-center z-50 bg-white shadow-md h-14">
-        <div class="text-black font-black text-lg cursor-pointer" onclick="location.href='index.html'"><span class="text-[#10b981]">Q</span>UIZ</div>
+        <div class="text-black font-black text-lg" onclick="location.href='index.html'"><span class="text-[#10b981]">Q</span>UIZ</div>
         <img src="shilla_logo.png" alt="Shilla" class="h-7 w-auto">
     </header>
 
-    <main class="w-full max-w-sm px-6 pt-10 flex-grow flex flex-col items-center relative h-[calc(100dvh-56px)] overflow-hidden">
+    <main class="w-full max-w-sm px-6 pt-10 flex-grow flex flex-col items-center relative">
         <div class="w-full bg-gray-800 h-1 mt-4 relative overflow-hidden rounded-full">
             <div id="timer-progress" class="timer-bar w-full"></div>
         </div>
         
         <div class="flex justify-between w-full mt-2 px-1">
             <span id="score-display" class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Score: 0</span>
-            <span id="timer-text" class="text-xl font-black text-[#10b981]">10.0</span>
+            <span id="timer-text" class="text-xl font-black text-[#10b981]">10</span>
         </div>
 
-        <div class="quiz-card w-full aspect-square mt-6 relative overflow-hidden flex items-center justify-center border-2 border-[#10b981]/30">
-            <img id="staff-img" src="" class="w-full h-full object-cover rounded-[28px]">
-            <div id="feedback" class="absolute inset-0 flex items-center justify-center text-9xl font-black hidden z-20"></div>
+        <div class="quiz-card w-full aspect-square mt-6 relative overflow-hidden flex items-center justify-center">
+            <img id="staff-img" src="" class="w-full h-full object-cover">
+            <div id="feedback" class="absolute inset-0 flex items-center justify-center text-6xl hidden"></div>
         </div>
 
-        <div id="choice-container" class="grid grid-cols-2 gap-3 w-full mt-8">
-            </div>
+        <div id="choice-container" class="grid grid-cols-2 gap-3 w-full mt-8"></div>
 
-        <button id="start-btn" onclick="startGame()" class="w-full bg-[#10b981] text-black font-black py-5 rounded-2xl mt-10 shadow-lg shadow-green-900/20 active:scale-95 transition-all z-30">
-            게임 시작 (소리 활성화)
+        <button id="start-btn" onclick="startGame()" class="w-full bg-[#10b981] text-black font-black py-5 rounded-2xl mt-10 shadow-lg shadow-green-900/20 active:scale-95 transition-all">
+            게임 시작
         </button>
-
-        <footer class="absolute bottom-4 right-6 text-[10px] font-normal italic tracking-wide text-gray-600">
-            제작 : <span class="ml-1 text-gray-500">정호준</span>
-        </footer>
     </main>
 
     <script>
@@ -55,35 +47,23 @@
         let staffList = [];
         let currentQuestion = null;
         let score = 0;
-        let timeLeft = 10.0;
+        let timeLeft = 10;
         let timerInterval = null;
         
-        // [핵심] 웹 오디오 API 컨텍스트 (브라우저 강제 소리 재생용)
+        // [추가] 소리 재생을 위한 오디오 컨텍스트
         let audioCtx = null;
 
-        // 소리 재생 함수 (주파수 직접 제어 - 버저음)
-        function playBuzzerSound() {
+        function playBuzzer() {
             if (!audioCtx) return;
-            try {
-                // 오디오 컨텍스트가 정지 상태라면 재개 (최초 클릭 후)
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-
-                const oscillator = audioCtx.createOscillator();
-                const gainNode = audioCtx.createGain();
-
-                oscillator.connect(gainNode);
-                gainNode.connect(audioCtx.destination);
-
-                oscillator.type = 'sine'; // 소리 형태 (사각형 파형)
-                oscillator.frequency.value = 800; // 주파수 (높은 삑 소리)
-                gainNode.gain.value = 0.1; // 볼륨 (0.0 ~ 1.0)
-
-                oscillator.start();
-                // 0.2초 후 소리 끔
-                setTimeout(() => oscillator.stop(), 200); 
-            } catch(e) {
-                console.log("오디오 재생 실패:", e);
-            }
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.value = 800;
+            gain.gain.value = 0.1;
+            osc.start();
+            setTimeout(() => osc.stop(), 200);
         }
 
         window.onload = async () => {
@@ -91,17 +71,11 @@
                 const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
                 const data = await res.json();
                 staffList = data.filter(f => f.name.endsWith('.jpg') && !f.name.includes('shilla_center'));
-            } catch(e) {
-                alert("데이터 로드 실패");
-            }
+            } catch(e) { alert("데이터 로드 실패"); }
         };
 
         function startGame() {
-            // [중요] 최초 클릭 시 오디오 컨텍스트 활성화 (브라우저 정책 대응)
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             score = 0;
             document.getElementById('score-display').innerText = `Score: ${score}`;
             document.getElementById('start-btn').classList.add('hidden');
@@ -109,11 +83,10 @@
         }
 
         function nextQuestion() {
-            if (staffList.length < 4) return alert("사진 데이터가 부족합니다.");
-            
+            if (staffList.length < 4) return alert("데이터 부족");
             const correctIdx = Math.floor(Math.random() * staffList.length);
             currentQuestion = staffList[correctIdx];
-            const correctName = currentQuestion.name.split('_')[0]; 
+            const correctName = currentQuestion.name.split('_')[0];
 
             let choices = [correctName];
             while(choices.length < 4) {
@@ -123,9 +96,8 @@
             choices.sort(() => Math.random() - 0.5);
 
             document.getElementById('staff-img').src = currentQuestion.download_url;
-            const btnBox = document.getElementById('choice-container');
-            btnBox.innerHTML = choices.map(name => `
-                <button onclick="checkAnswer('${name}', '${correctName}')" class="ans-btn py-4 rounded-xl font-bold text-sm text-gray-200">
+            document.getElementById('choice-container').innerHTML = choices.map(name => `
+                <button onclick="checkAnswer('${name}', '${correctName}')" class="ans-btn py-4 rounded-xl font-bold text-sm">
                     ${name}
                 </button>
             `).join('');
@@ -134,33 +106,24 @@
         }
 
         function startTimer() {
-            timeLeft = 10.0;
+            timeLeft = 10;
             updateTimerUI();
             if(timerInterval) clearInterval(timerInterval);
-
-            // 0.1초 단위로 타이머 갱신 (더 부드럽게)
             timerInterval = setInterval(() => {
-                timeLeft -= 0.1;
+                timeLeft--;
                 updateTimerUI();
-
                 if(timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    timeLeft = 0;
-                    updateTimerUI();
-                    
-                    playBuzzerSound(); // [원복 기능] 시간 초과 시 소리 재생 (삑!)
+                    playBuzzer(); // 소리 추가
                     showFeedback(false);
-                    setTimeout(nextQuestion, 1200);
+                    setTimeout(nextQuestion, 1000);
                 }
-            }, 100);
+            }, 1000);
         }
 
         function updateTimerUI() {
-            document.getElementById('timer-text').innerText = timeLeft.toFixed(1);
-            // 진행바 너비 (0% ~ 100%)
+            document.getElementById('timer-text').innerText = timeLeft;
             document.getElementById('timer-progress').style.width = (timeLeft * 10) + "%";
-            // 3초 남았을 때 빨간색 강조
-            document.getElementById('timer-text').style.color = timeLeft <= 3.0 ? "#ef4444" : "#10b981";
         }
 
         function checkAnswer(selected, correct) {
@@ -170,27 +133,18 @@
                 document.getElementById('score-display').innerText = `Score: ${score}`;
                 showFeedback(true);
             } else {
-                playBuzzerSound(); // [원복 기능] 오답 시에도 소리 재생 (삑!)
+                playBuzzer(); // 오답 시 소리 추가
                 showFeedback(false);
             }
-            setTimeout(nextQuestion, 1200);
+            setTimeout(nextQuestion, 1000);
         }
 
         function showFeedback(isCorrect) {
             const fb = document.getElementById('feedback');
             fb.innerText = isCorrect ? "O" : "X";
             fb.style.color = isCorrect ? "#10b981" : "#ef4444";
-            fb.classList.remove('hidden', 'fade-out');
-            
-            // 0.8초 후 페이드아웃 애니메이션 적용
-            setTimeout(() => {
-                fb.classList.add('fade-out');
-            }, 400);
-            
-            // 1.2초 후 완전히 숨김
-            setTimeout(() => {
-                fb.classList.add('hidden');
-            }, 1200);
+            fb.classList.remove('hidden');
+            setTimeout(() => fb.classList.add('hidden'), 800);
         }
     </script>
 </body>
