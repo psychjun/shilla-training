@@ -67,6 +67,10 @@
                 </button>
             </div>
         </div>
+
+        <footer class="absolute bottom-10 text-[11px] font-normal italic tracking-widest text-gray-500/50">
+            제작 : <span class="text-gray-400 font-bold">정호준</span>
+        </footer>
     </main>
 
     <script>
@@ -74,10 +78,12 @@
             "1st": "1조 조원", "2nd": "2조 조원", "3rd": "3조 조원",
             "1st_l": "1조 주임", "2nd_l": "2조 주임", "3rd_l": "3조 주임", "master": "Master" 
         };
-        const USERS = { 
+        
+        // 권한 분리용 계정 데이터
+        const USERS = JSON.parse(localStorage.getItem('shilla_users') || JSON.stringify({ 
             "1st": "1111", "2nd": "2222", "3rd": "3333",
             "1st_l": "free11", "2nd_l": "free22", "3rd_l": "free33", "master": "admin99" 
-        };
+        }));
 
         function checkLogin() {
             const id = document.getElementById('user-id').value;
@@ -87,7 +93,6 @@
                 sessionStorage.setItem('userRole', id);
                 sessionStorage.setItem('userName', NAMES[id]);
                 
-                // 로그인 로그 기록 (주임 이상만 관리자 메뉴 노출)
                 if(id.includes('_l') || id === 'master') {
                     saveLog(`${NAMES[id]} 관리자 접속`);
                 }
@@ -107,7 +112,6 @@
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('menu-section').classList.remove('hidden');
             document.getElementById('welcome-user').innerText = NAMES[role];
-            // 주임 계정 이상만 관리자 버튼 활성화
             if(role.includes('_l') || role === 'master') {
                 document.getElementById('admin-btn').classList.remove('hidden');
             }
