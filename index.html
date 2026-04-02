@@ -79,26 +79,37 @@
             "1st_l": "1조 주임", "2nd_l": "2조 주임", "3rd_l": "3조 주임", "master": "Master" 
         };
         
-        // 권한 분리용 계정 데이터
-        const USERS = JSON.parse(localStorage.getItem('shilla_users') || JSON.stringify({ 
-            "1st": "1111", "2nd": "2222", "3rd": "3333",
-            "1st_l": "free11", "2nd_l": "free22", "3rd_l": "free33", "master": "admin99" 
-        }));
+        // ★★★ [중요] 팀장님, 여기서 따옴표 안의 비밀번호를 수정하세요! ★★★
+        // 이 코드를 수정해서 GitHub에 올리면 모든 조원에게 동시에 적용됩니다.
+        const DEFAULT_USERS = { 
+            "1st": "1111",      // 1조 조원 비번
+            "2nd": "2222",      // 2조 조원 비번
+            "3rd": "3333",      // 3조 조원 비번
+            "1st_l": "free11",  // 1조 주임 비번
+            "2nd_l": "free22",  // 2조 주임 비번
+            "3rd_l": "free33",  // 3조 주임 비번
+            "master": "admin99" // 마스터 비번
+        };
+
+        // 로컬 저장소와 병합 (기기별 개인화 유지)
+        const USERS = JSON.parse(localStorage.getItem('shilla_users')) || DEFAULT_USERS;
 
         function checkLogin() {
             const id = document.getElementById('user-id').value;
             const pw = document.getElementById('user-pw').value;
+            
             if (USERS[id] && USERS[id] === pw) {
                 sessionStorage.setItem('isLoggedIn', 'true');
                 sessionStorage.setItem('userRole', id);
                 sessionStorage.setItem('userName', NAMES[id]);
                 
+                // 관리자급 접속 로그 기록
                 if(id.includes('_l') || id === 'master') {
                     saveLog(`${NAMES[id]} 관리자 접속`);
                 }
                 showMenu(id);
             } else {
-                document.getElementById('login-error').innerText = "ID/PW가 틀립니다.";
+                document.getElementById('login-error').innerText = "아이디 또는 비밀번호가 틀립니다.";
             }
         }
 
@@ -112,13 +123,22 @@
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('menu-section').classList.remove('hidden');
             document.getElementById('welcome-user').innerText = NAMES[role];
+            // 주임 이상만 관리자 버튼 노출
             if(role.includes('_l') || role === 'master') {
                 document.getElementById('admin-btn').classList.remove('hidden');
             }
         }
 
-        function logout() { sessionStorage.clear(); location.replace('index.html'); }
-        window.onload = () => { if (sessionStorage.getItem('isLoggedIn') === 'true') showMenu(sessionStorage.getItem('userRole')); };
+        function logout() { 
+            sessionStorage.clear(); 
+            location.replace('index.html'); 
+        }
+
+        window.onload = () => { 
+            if (sessionStorage.getItem('isLoggedIn') === 'true') {
+                showMenu(sessionStorage.getItem('userRole'));
+            }
+        };
     </script>
 </body>
 </html>
