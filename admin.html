@@ -3,16 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Admin - Advanced Control</title>
+    <title>Shilla Admin - Total Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
         body { font-family: 'Noto Sans KR', sans-serif; background-color: #0b0b0b; color: white; margin: 0; }
         .fz-green { color: #10b981; }
         .admin-card { background: #161616; border: 1px solid #222; border-radius: 20px; padding: 20px; }
-        .tab-btn { padding: 12px; font-weight: bold; border-bottom: 2px solid transparent; color: #555; transition: 0.3s; }
+        .tab-btn { padding: 12px; font-weight: bold; border-bottom: 2px solid transparent; color: #555; transition: 0.3s; font-size: 14px; }
         .tab-btn.active { color: #10b981; border-color: #10b981; }
-        .thumb-checkbox { position: absolute; top: 8px; right: 8px; width: 20px; height: 20px; accent-color: #10b981; }
+        .day-cell { aspect-ratio: 1; border: 1px solid #222; font-size: 10px; padding: 4px; cursor: pointer; position: relative; }
+        .day-cell.has-log::after { content: ''; position: absolute; bottom: 4px; right: 4px; width: 4px; height: 4px; background: #10b981; border-radius: 50%; }
+        .pw-input { background: #000; border: 1px solid #333; color: #10b981; padding: 6px; border-radius: 8px; width: 100%; outline: none; font-size: 12px; }
+        .thumb-checkbox { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; accent-color: #10b981; z-index: 10; }
     </style>
 </head>
 <body class="pb-20">
@@ -21,55 +24,82 @@
         <img src="shilla_logo.png" alt="Shilla" class="h-7 w-auto cursor-pointer" onclick="location.href='index.html'">
     </header>
 
-    <nav class="flex border-b border-gray-800 bg-black sticky top-0 z-50">
-        <button onclick="showTab('photo')" id="tab-photo" class="tab-btn flex-1 active">사진/삭제 관리</button>
-        <button onclick="showTab('manual')" id="tab-manual" class="tab-btn flex-1">텍스트 수정</button>
-        <button onclick="showTab('user')" id="tab-user" class="tab-btn flex-1">비번/로그</button>
+    <nav class="flex border-b border-gray-800 bg-black sticky top-0 z-50 overflow-x-auto">
+        <button onclick="showTab('photo')" id="tab-photo" class="tab-btn flex-1 active whitespace-nowrap">사진 관리</button>
+        <button onclick="showTab('manual')" id="tab-manual" class="tab-btn flex-1 whitespace-nowrap">매뉴얼 수정</button>
+        <button onclick="showTab('user')" id="tab-user" class="tab-btn flex-1 whitespace-nowrap">비번 관리</button>
+        <button onclick="showTab('log')" id="tab-log" class="tab-btn flex-1 whitespace-nowrap hidden" id="log-tab-nav">시스템 로그</button>
     </nav>
 
     <main class="p-6 space-y-6">
         <div class="admin-card">
-            <h3 class="text-xs font-bold text-gray-500 mb-3 uppercase tracking-widest">System Configuration</h3>
-            <input type="password" id="gh-token" placeholder="GitHub Personal Access Token 입력" class="w-full p-3 bg-black border border-gray-700 rounded-xl text-xs text-[#10b981] outline-none">
-            <p class="text-[9px] text-gray-600 mt-2">* 삭제 및 업로드를 위해 반드시 토큰이 필요합니다.</p>
+            <h3 class="text-[10px] font-bold text-gray-500 mb-2 uppercase">GitHub Connection</h3>
+            <input type="password" id="gh-token" placeholder="GitHub 토큰 입력" class="w-full p-3 bg-black border border-gray-700 rounded-xl text-xs text-[#10b981]">
         </div>
 
         <div id="sec-photo" class="tab-content space-y-6">
             <div class="admin-card border-l-4 border-blue-500">
-                <h3 class="text-blue-400 font-bold mb-4 flex items-center">📸 사진 등록</h3>
-                <input type="text" id="upload-name" placeholder="등록할 직원 성함" class="w-full p-3 bg-black border border-gray-700 rounded-xl mb-3 text-sm">
-                <input type="file" id="file-input" accept="image/*" class="w-full text-xs text-gray-500 mb-4">
-                <button onclick="handleUpload()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl active:scale-95 transition-all">서버 업로드</button>
+                <h4 class="text-blue-400 font-bold mb-3 text-sm">신규 사진 등록</h4>
+                <input type="text" id="upload-name" placeholder="직원 성함" class="w-full p-3 bg-black border border-gray-700 rounded-xl mb-3 text-sm">
+                <input type="file" id="file-input" class="w-full text-xs text-gray-500 mb-3">
+                <button onclick="handleUpload()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl">업로드</button>
             </div>
 
             <div class="admin-card border-l-4 border-red-500">
-                <h3 class="text-red-500 font-bold mb-4 flex items-center">🗑️ 사진 검색 및 삭제</h3>
+                <h4 class="text-red-500 font-bold mb-3 text-sm">이름으로 사진 검색/삭제</h4>
                 <div class="flex space-x-2 mb-4">
-                    <input type="text" id="search-name" placeholder="삭제할 이름 입력 (예: 홍길동)" class="flex-grow p-3 bg-black border border-gray-700 rounded-xl text-sm">
-                    <button onclick="searchPhotos()" class="px-6 bg-gray-800 text-white rounded-xl font-bold text-sm">검색</button>
+                    <input type="text" id="search-name" placeholder="이름 입력 (예: 홍길동)" class="flex-grow p-3 bg-black border border-gray-700 rounded-xl text-sm">
+                    <button onclick="searchPhotos()" class="px-4 bg-gray-800 rounded-xl text-sm font-bold">검색</button>
                 </div>
-                
-                <div id="search-results" class="grid grid-cols-2 gap-3 min-h-[100px]">
-                    <p class="col-span-2 text-center text-gray-600 py-10 text-xs">이름을 검색하면 해당 사진들이 표시됩니다.</p>
-                </div>
-
-                <div id="delete-control" class="hidden mt-6 pt-4 border-t border-gray-800">
-                    <button onclick="deleteSelected()" class="w-full bg-red-600 text-white font-black py-4 rounded-xl shadow-lg shadow-red-900/20">선택한 사진들 일괄 삭제</button>
-                </div>
+                <div id="search-results" class="grid grid-cols-2 gap-3 min-h-[50px]"></div>
+                <button id="del-btn" onclick="deleteSelected()" class="hidden w-full bg-red-600 text-white font-black py-4 rounded-xl mt-4">선택 항목 일괄 삭제</button>
             </div>
         </div>
 
-        <div id="sec-manual" class="tab-content hidden">... (매뉴얼 코드 생략) ...</div>
-        <div id="sec-user" class="tab-content hidden">... (비번/로그 코드 생략) ...</div>
+        <div id="sec-manual" class="tab-content hidden">
+            <div class="admin-card">
+                <h3 class="text-[#d4af37] font-bold mb-4">순찰 매뉴얼 텍스트 수정</h3>
+                <textarea id="manual-text" rows="10" class="w-full bg-black border border-gray-800 rounded-xl p-4 text-sm text-gray-300 outline-none focus:border-[#10b981]"></textarea>
+                <button onclick="saveManual()" class="w-full bg-white text-black font-black py-3 rounded-xl mt-4">매뉴얼 저장</button>
+            </div>
+        </div>
+
+        <div id="sec-user" class="tab-content hidden">
+            <div class="admin-card">
+                <h3 class="text-blue-400 font-bold mb-4 italic">PASSWORD MANAGEMENT</h3>
+                <div id="user-list-container" class="space-y-4"></div>
+            </div>
+        </div>
+
+        <div id="sec-log" class="tab-content hidden space-y-4">
+            <div class="admin-card">
+                <h3 class="fz-green font-bold mb-4">활동 기록 (2026.04)</h3>
+                <div id="calendar-grid" class="grid grid-cols-7 border-t border-l border-gray-800"></div>
+            </div>
+            <div id="log-detail" class="admin-card hidden">
+                <h4 id="log-date-title" class="text-xs font-bold text-gray-500 mb-3"></h4>
+                <div id="log-list-box" class="space-y-2 max-h-60 overflow-y-auto"></div>
+            </div>
+        </div>
     </main>
 
     <script>
         const REPO = "psychjun/shilla-training";
-        let foundPhotos = [];
+        const role = sessionStorage.getItem('userRole') || 'guest';
+        const userName = sessionStorage.getItem('userName') || 'Unknown';
+        
+        // 계정 데이터 (로컬 스토리지 우선)
+        let USERS_DATA = JSON.parse(localStorage.getItem('shilla_users') || JSON.stringify({
+            "1st": "1111", "2nd": "2222", "3rd": "3333",
+            "1st_l": "free11", "2nd_l": "free22", "3rd_l": "free33", "master": "admin99"
+        }));
 
         window.onload = () => {
+            if(role === 'master') document.getElementById('tab-log').classList.remove('hidden');
             const savedToken = localStorage.getItem('gh_pat');
             if(savedToken) document.getElementById('gh-token').value = savedToken;
+            loadManual();
+            showTab('photo');
         };
 
         function showTab(tab) {
@@ -77,90 +107,143 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.getElementById('sec-' + tab).classList.remove('hidden');
             document.getElementById('tab-' + tab).classList.add('active');
+            if(tab === 'user') renderUserManagement();
+            if(tab === 'log') renderCalendar();
         }
 
-        // --- 사진 검색 기능 (핵심) ---
+        // --- 사진 검색 및 일괄 삭제 ---
         async function searchPhotos() {
             const name = document.getElementById('search-name').value.trim();
-            const resultsDiv = document.getElementById('search-results');
-            if(!name) return alert("검색할 이름을 입력하세요.");
-
-            resultsDiv.innerHTML = "<p class='col-span-2 text-center py-10'>검색 중...</p>";
-
+            const resBox = document.getElementById('search-results');
+            if(!name) return alert("검색어를 입력하세요.");
+            resBox.innerHTML = "<p class='col-span-2 text-center text-xs py-4'>검색 중...</p>";
+            
             try {
                 const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
                 const data = await res.json();
+                const found = data.filter(f => f.name.includes(name) && f.name.endsWith('.jpg'));
                 
-                // 이름이 포함된 사진 필터링
-                foundPhotos = data.filter(f => f.name.includes(name) && f.name.endsWith('.jpg'));
-
-                if(foundPhotos.length === 0) {
-                    resultsDiv.innerHTML = "<p class='col-span-2 text-center py-10 text-gray-500'>검색 결과가 없습니다.</p>";
-                    document.getElementById('delete-control').classList.add('hidden');
+                if(found.length === 0) {
+                    resBox.innerHTML = "<p class='col-span-2 text-center text-xs py-4 text-gray-500'>결과 없음</p>";
+                    document.getElementById('del-btn').classList.add('hidden');
                     return;
                 }
 
-                resultsDiv.innerHTML = foundPhotos.map(f => `
+                resBox.innerHTML = found.map(f => `
                     <div class="relative bg-black border border-gray-800 rounded-lg overflow-hidden">
                         <img src="${f.download_url}" class="w-full aspect-square object-cover opacity-60">
                         <input type="checkbox" class="thumb-checkbox" value="${f.sha}" data-name="${f.name}">
-                        <div class="absolute bottom-0 left-0 right-0 bg-black/80 p-1 text-[9px] text-center truncate">
-                            ${f.name}
-                        </div>
+                        <div class="absolute bottom-0 left-0 right-0 bg-black/80 p-1 text-[9px] text-center truncate">${f.name}</div>
                     </div>
                 `).join('');
-                document.getElementById('delete-control').classList.remove('hidden');
-
-            } catch(e) {
-                alert("GitHub 데이터를 불러오는데 실패했습니다.");
-            }
+                document.getElementById('del-btn').classList.remove('hidden');
+            } catch(e) { alert("연동 실패"); }
         }
 
-        // --- 일괄 삭제 기능 (핵심) ---
         async function deleteSelected() {
             const token = document.getElementById('gh-token').value;
-            const selected = document.querySelectorAll('.thumb-checkbox:checked');
-            
-            if(!token) return alert("GitHub 토큰을 입력해주세요.");
-            if(selected.length === 0) return alert("삭제할 사진을 선택해주세요.");
-            if(!confirm(`선택한 ${selected.length}개의 사진을 영구 삭제하시겠습니까?`)) return;
+            const checks = document.querySelectorAll('.thumb-checkbox:checked');
+            if(!token || checks.length === 0) return alert("토큰 입력 및 사진 선택 필수!");
+            if(!confirm(`선택한 ${checks.length}개 삭제?`)) return;
 
-            localStorage.setItem('gh_pat', token); // 토큰 자동 저장
-            let successCount = 0;
-
-            for(let item of selected) {
-                const fileName = item.getAttribute('data-name');
-                const sha = item.value;
-
-                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${fileName}`, {
+            for(let c of checks) {
+                const n = c.getAttribute('data-name');
+                const s = c.value;
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${n}`, {
                     method: "DELETE",
                     headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({ message: `Delete photo: ${fileName} by Admin`, sha: sha })
+                    body: JSON.stringify({ message: `Delete ${n}`, sha: s })
                 });
-
-                if(res.ok) {
-                    successCount++;
-                    addLog(`사진 삭제 완료: ${fileName}`);
-                }
+                if(res.ok) addLog(`사진 삭제: ${n}`);
             }
-
-            alert(`${successCount}개의 사진이 성공적으로 삭제되었습니다.`);
-            searchPhotos(); // 목록 갱신
+            alert("삭제 완료"); searchPhotos();
         }
 
-        // --- 업로드 기능 (자동 번호 부여 포함) ---
+        // --- 매뉴얼 및 비번 관리 (원복 로직) ---
+        function loadManual() { document.getElementById('manual-text').value = localStorage.getItem('manual_patrol') || ""; }
+        function saveManual() {
+            localStorage.setItem('manual_patrol', document.getElementById('manual-text').value);
+            addLog("매뉴얼 텍스트 수정");
+            alert("저장 완료");
+        }
+
+        function renderUserManagement() {
+            const container = document.getElementById('user-list-container');
+            container.innerHTML = '';
+            Object.entries(USERS_DATA).forEach(([id, pw]) => {
+                if (role === 'master' || role === id) {
+                    container.innerHTML += `
+                        <div class="p-3 bg-black rounded-xl border border-gray-800 space-y-2">
+                            <div class="flex justify-between items-center text-xs">
+                                <span class="font-bold text-gray-400">${id}</span>
+                                <div class="space-x-1">
+                                    <button onclick="togglePw('${id}')" class="bg-gray-800 px-2 py-1 rounded">보기</button>
+                                    <button onclick="updatePw('${id}')" class="bg-[#10b981] text-black px-2 py-1 rounded font-bold">변경</button>
+                                </div>
+                            </div>
+                            <input type="password" id="pw-input-${id}" value="${pw}" class="pw-input" readonly>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+        function togglePw(id) {
+            const el = document.getElementById(`pw-input-${id}`);
+            el.type = el.type === "password" ? "text" : "password";
+            if(el.type === "text") { el.removeAttribute('readonly'); addLog(`비밀번호 조회: ${id}`); }
+            else el.setAttribute('readonly', true);
+        }
+
+        function updatePw(id) {
+            const val = document.getElementById(`pw-input-${id}`).value;
+            USERS_DATA[id] = val;
+            localStorage.setItem('shilla_users', JSON.stringify(USERS_DATA));
+            addLog(`비밀번호 변경: ${id}`);
+            alert("변경 완료");
+        }
+
+        // --- 시스템 로그 (캘린더 방식 원복) ---
+        function addLog(action) {
+            let logs = JSON.parse(localStorage.getItem('shilla_system_logs') || '[]');
+            logs.push({ user: userName, action: action, time: new Date().toISOString() });
+            localStorage.setItem('shilla_system_logs', JSON.stringify(logs));
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            const logs = JSON.parse(localStorage.getItem('shilla_system_logs') || '[]');
+            grid.innerHTML = '';
+            for(let i=1; i<=30; i++) {
+                const dateStr = `2026-04-${String(i).padStart(2, '0')}`;
+                const hasLog = logs.some(l => l.time.startsWith(dateStr));
+                grid.innerHTML += `<div class="day-cell ${hasLog?'has-log':''}" onclick="showDayLogs('${dateStr}')">${i}</div>`;
+            }
+        }
+
+        function showDayLogs(date) {
+            const box = document.getElementById('log-detail');
+            const listBox = document.getElementById('log-list-box');
+            const logs = JSON.parse(localStorage.getItem('shilla_system_logs') || '[]');
+            const filtered = logs.filter(l => l.time.startsWith(date)).reverse();
+            box.classList.remove('hidden');
+            document.getElementById('log-date-title').innerText = date + " 상세 로그";
+            listBox.innerHTML = filtered.map(l => `
+                <div class="text-[10px] border-b border-gray-800 pb-1">
+                    <span class="text-[#10b981]">[${l.user}]</span> ${l.action} 
+                    <span class="block text-[8px] text-gray-600">${new Date(l.time).toLocaleTimeString()}</span>
+                </div>
+            `).join('') || "기록 없음";
+        }
+
         async function handleUpload() {
             const token = document.getElementById('gh-token').value;
             const name = document.getElementById('upload-name').value.trim();
             const fileInput = document.getElementById('file-input');
-            
-            if(!token || !name || !fileInput.files[0]) return alert("정보를 모두 입력하세요.");
-
+            if(!token || !name || !fileInput.files[0]) return alert("정보 부족");
             const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
             const files = await res.json();
-            const count = files.filter(f => f.name.startsWith(name)).length;
-            const fileName = `${name}_${count + 1}.jpg`;
-
+            const fileName = `${name}_${files.filter(f=>f.name.startsWith(name)).length + 1}.jpg`;
             const reader = new FileReader();
             reader.readAsDataURL(fileInput.files[0]);
             reader.onload = async () => {
@@ -168,21 +251,10 @@
                 const uploadRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${fileName}`, {
                     method: "PUT",
                     headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
-                    body: JSON.stringify({ message: `Upload photo: ${fileName}`, content: base64 })
+                    body: JSON.stringify({ message: `Upload ${fileName}`, content: base64 })
                 });
-
-                if(uploadRes.ok) {
-                    addLog(`사진 등록 완료: ${fileName}`);
-                    alert(`${fileName} 업로드 성공!`);
-                    document.getElementById('upload-name').value = "";
-                }
+                if(uploadRes.ok) { addLog(`사진 등록: ${fileName}`); alert("성공"); }
             };
-        }
-
-        function addLog(action) {
-            let logs = JSON.parse(localStorage.getItem('shilla_system_logs') || '[]');
-            logs.push({ user: sessionStorage.getItem('userName'), action: action, time: new Date().toISOString() });
-            localStorage.setItem('shilla_system_logs', JSON.stringify(logs));
         }
     </script>
 </body>
