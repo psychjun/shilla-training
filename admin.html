@@ -3,98 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Admin - Access Logs</title>
+    <title>Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: #0b0b0b; color: white; min-height: 100vh; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: #222; border: 1px solid #333; border-radius: 12px; overflow: hidden; }
-        .day-cell { aspect-ratio: 1; background: #0b0b0b; padding: 10px; display: flex; flex-col; justify-content: space-between; cursor: pointer; transition: 0.2s; }
-        .day-cell:hover { background: #1a1a1a; }
-        .day-cell.has-log { border-bottom: 3px solid #10b981; }
-        .day-cell.today { background: #10b98120; font-weight: bold; }
-        .log-list { max-height: 250px; overflow-y: auto; }
-        .fz-green { color: #10b981; }
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #0b0b0b; color: white; }
+        .tab-btn { padding: 12px; font-weight: bold; font-size: 14px; border-bottom: 2px solid transparent; color: #666; }
+        .tab-btn.active { color: #10b981; border-color: #10b981; }
+        .day-cell { aspect-ratio: 1; border: 1px solid #222; font-size: 10px; padding: 4px; cursor: pointer; }
+        .day-cell.has-log { background: #10b98120; border-bottom: 2px solid #10b981; }
     </style>
 </head>
-<body class="p-6">
-    <header class="flex justify-between items-center mb-10">
-        <h1 class="text-2xl font-black"><span class="fz-green">A</span>DMIN LOGS</h1>
-        <button onclick="location.href='index.html'" class="text-xs text-gray-500 border border-gray-700 px-3 py-1 rounded">닫기</button>
+<body class="pb-20">
+    <header class="p-4 bg-white flex justify-between items-center shadow-md">
+        <div class="text-black font-black text-lg"><span class="text-[#10b981]">A</span>DMIN</div>
+        <button onclick="location.href='index.html'" class="text-xs bg-gray-200 text-black px-3 py-1 rounded">나가기</button>
     </header>
 
-    <section class="max-w-md mx-auto space-y-8">
-        <div>
-            <h2 id="month-title" class="text-lg font-bold mb-4 text-[#d4af37]">2026.04</h2>
-            <div class="calendar-grid" id="calendar-body">
+    <nav class="flex border-b border-gray-800 bg-black sticky top-0 z-50">
+        <button onclick="showTab('photo')" id="tab-photo" class="tab-btn flex-1 active">사진 관리</button>
+        <button onclick="showTab('user')" id="tab-user" class="tab-btn flex-1 master-only hidden">계정 관리</button>
+        <button onclick="showTab('log')" id="tab-log" class="tab-btn flex-1 master-only hidden">시스템 로그</button>
+    </nav>
+
+    <main class="p-6">
+        <div id="sec-photo" class="tab-content space-y-6">
+            <div class="bg-gray-900 p-6 rounded-2xl border border-gray-800">
+                <h3 class="text-[#10b981] font-bold mb-4">신규 임직원 등록</h3>
+                <input type="text" id="target-name" placeholder="직원 이름" class="w-full p-3 bg-black border border-gray-700 rounded-xl mb-3 outline-none focus:border-[#10b981]">
+                <input type="file" id="file-input" class="w-full text-xs text-gray-500 mb-4">
+                <button onclick="handleUpload()" class="w-full bg-[#10b981] text-black font-black py-3 rounded-xl">업로드</button>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-4" id="photo-list">
                 </div>
         </div>
 
-        <div id="log-detail-section" class="hidden bg-white/5 rounded-3xl p-6 border border-white/10">
-            <h3 id="selected-date-title" class="text-sm font-bold text-[#10b981] mb-4">4월 2일 접속 기록</h3>
-            <div id="log-list" class="log-list space-y-2">
-                </div>
+        <div id="sec-user" class="tab-content hidden space-y-4">
+            <div class="bg-gray-900 p-4 rounded-xl border border-gray-800">
+                <p class="text-xs text-gray-500 mb-2">* Master는 주임 계정 비밀번호 수정이 가능합니다.</p>
+                <div id="user-list" class="space-y-3"></div>
+            </div>
         </div>
-    </section>
+
+        <div id="sec-log" class="tab-content hidden">
+            <div class="grid grid-cols-7 mb-4 text-center text-[10px] text-gray-500">
+                <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+            </div>
+            <div id="calendar-grid" class="grid grid-cols-7 mb-6"></div>
+            <div id="daily-log-list" class="space-y-2 bg-gray-900 p-4 rounded-xl hidden"></div>
+        </div>
+    </main>
 
     <script>
-        let logs = JSON.parse(localStorage.getItem('shilla_logs') || '[]');
+        const REPO = "psychjun/shilla-training";
+        const role = sessionStorage.getItem('userRole');
 
-        function renderCalendar() {
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            document.getElementById('month-title').innerText = `${year}.${month + 1}`;
-
-            const firstDay = new Date(year, month, 1).getDay();
-            const lastDate = new Date(year, month + 1, 0).getDate();
-            const calendarBody = document.getElementById('calendar-body');
-            calendarBody.innerHTML = '';
-
-            // 빈 칸 (첫 주 요일 맞추기)
-            for (let i = 0; i < firstDay; i++) {
-                calendarBody.innerHTML += `<div class="day-cell opacity-20"></div>`;
-            }
-
-            // 실제 날짜
-            for (let d = 1; d <= lastDate; d++) {
-                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-                const dayLogs = logs.filter(l => l.time.startsWith(dateStr));
-                const isToday = d === now.getDate() ? 'today' : '';
-                const hasLog = dayLogs.length > 0 ? 'has-log' : '';
-
-                calendarBody.innerHTML += `
-                    <div class="day-cell ${isToday} ${hasLog}" onclick="showLogs('${dateStr}')">
-                        <span class="text-xs">${d}</span>
-                        ${dayLogs.length > 0 ? `<span class="text-[8px] fz-green font-bold">${dayLogs.length}건</span>` : ''}
-                    </div>
-                `;
-            }
+        function showTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('sec-' + tab).classList.remove('hidden');
+            document.getElementById('tab-' + tab).classList.add('active');
+            if(tab === 'log') renderCalendar();
+            if(tab === 'photo') loadPhotoList();
+            if(tab === 'user') renderUsers();
         }
 
-        function showLogs(date) {
-            const section = document.getElementById('log-detail-section');
-            const list = document.getElementById('log-list');
-            const title = document.getElementById('selected-date-title');
-            
-            const dayLogs = logs.filter(l => l.time.startsWith(date)).reverse();
-            
-            if (dayLogs.length === 0) {
-                alert("해당 날짜의 기록이 없습니다.");
-                return;
-            }
+        // 권한 체크
+        if(role === 'master') {
+            document.querySelectorAll('.master-only').forEach(el => el.classList.remove('hidden'));
+        }
 
-            section.classList.remove('hidden');
-            title.innerText = `${date} 접속 기록`;
-            list.innerHTML = dayLogs.map(l => `
-                <div class="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
-                    <span class="font-bold text-white text-sm">${l.user}</span>
-                    <span class="text-[10px] text-gray-500">${new Date(l.time).toLocaleTimeString()}</span>
+        // 사진 목록 로드 및 삭제
+        async function loadPhotoList() {
+            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
+            const data = await res.json();
+            const list = document.getElementById('photo-list');
+            list.innerHTML = data.filter(f => f.name.endsWith('.jpg') && !f.name.includes('logo')).map(f => `
+                <div class="bg-gray-900 p-2 rounded-xl border border-gray-800 text-center">
+                    <img src="${f.download_url}" class="w-full aspect-square object-cover rounded-lg mb-2">
+                    <p class="text-[10px] truncate">${f.name}</p>
+                    <button onclick="deletePhoto('${f.name}', '${f.sha}')" class="text-red-500 text-[10px] font-bold mt-1 uppercase">Delete</button>
                 </div>
             `).join('');
         }
 
-        renderCalendar();
+        async function deletePhoto(name, sha) {
+            if(!confirm(`${name} 사진을 삭제할까요?`)) return;
+            const token = localStorage.getItem('gh_pat');
+            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${name}`, {
+                method: "DELETE",
+                headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+                body: JSON.stringify({ message: `Delete ${name}`, sha: sha })
+            });
+            if(res.ok) {
+                saveLog(`${name} 사진 삭제`);
+                loadPhotoList();
+            }
+        }
+
+        // 로그 기록 함수
+        function saveLog(action) {
+            let logs = JSON.parse(localStorage.getItem('shilla_system_logs') || '[]');
+            logs.push({ user: sessionStorage.getItem('userName'), action: action, time: new Date().toISOString() });
+            localStorage.setItem('shilla_system_logs', JSON.stringify(logs));
+        }
+
+        // 캘린더 렌더링
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            const logs = JSON.parse(localStorage.getItem('shilla_system_logs') || '[]');
+            grid.innerHTML = '';
+            for(let i=1; i<=30; i++) {
+                const dateStr = `2026-04-${String(i).padStart(2, '0')}`;
+                const hasLog = logs.some(l => l.time.startsWith(dateStr));
+                grid.innerHTML += `<div class="day-cell ${hasLog?'has-log':''}" onclick="showDayLogs('${dateStr}')">${i}</div>`;
+            }
+        }
+
+        function showDayLogs(date) {
+            const list = document.getElementById('daily-log-list');
+            const logs = JSON.parse(localStorage.getItem('shilla_system_logs') || '[]');
+            const filtered = logs.filter(l => l.time.startsWith(date)).reverse();
+            list.classList.remove('hidden');
+            list.innerHTML = filtered.map(l => `
+                <div class="text-[10px] border-b border-gray-800 pb-1">
+                    <span class="text-[#10b981]">[${l.user}]</span> ${l.action} 
+                    <span class="text-gray-600 block">${new Date(l.time).toLocaleTimeString()}</span>
+                </div>
+            `).join('') || "기록 없음";
+        }
+
+        // 초기 실행
+        showTab('photo');
     </script>
 </body>
 </html>

@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Shilla Names - Training</title>
+    <title>Shilla Names - Training Tool</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400;500;700;900&family=Playfair+Display:wght@600&display=swap');
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: #000; color: white; margin: 0; overflow: hidden; height: 100dvh; }
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #000; color: white; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; height: 100dvh; width: 100%; overflow: hidden; position: fixed; }
         .eng-title { font-family: 'Playfair Display', serif; }
         .fz-stretch { display: inline-block; transform: scaleY(1.35); transform-origin: center; }
-        .fz-green { color: #10b981; }
-        
-        /* 마이크 푸른색/초록색 회전 글로우 효과 (요청하신 그 효과!) */
-        .mic-wrapper { position: relative; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+        .fz-green { color: #10b981; } /* 시그니처 초록색 */
+
+        /* 마이크 푸른색/에메랄드 회전 글로우 효과 (팀장님이 말씀하신 그 디자인!) */
+        .mic-wrapper { position: relative; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.3s ease; }
         .mic-wrapper.mic-active::before { 
             content: ""; position: absolute; inset: -5px; border-radius: 50%; 
             background: conic-gradient(from 0deg, transparent 30%, #10b981 50%, transparent 70%); 
@@ -26,8 +26,8 @@
         }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         @keyframes pulse-glow { from { opacity: 0.2; transform: scale(1); } to { opacity: 0.5; transform: scale(1.1); } }
-        
-        #mic-btn { position: relative; z-index: 10; width: 68px; height: 68px; border-radius: 50%; background-color: #e11d48; transition: all 0.3s ease; }
+
+        #mic-btn { position: relative; z-index: 10; width: 68px; height: 68px; border-radius: 50%; background-color: #e11d48; transition: all 0.3s ease; border: none; outline: none; cursor: pointer; }
         .mic-active #mic-btn { background-color: #064e3b !important; transform: scale(0.95); }
         
         .timer-danger { color: #ef4444 !important; animation: shake 0.2s infinite; }
@@ -37,83 +37,109 @@
 <body class="flex flex-col relative" style="background-image: url('shilla_center.jpg'); background-size: cover; background-position: center;">
     <div class="absolute inset-0 bg-black/85 z-0"></div>
 
-    <header onclick="location.href='index.html'" class="w-full p-3 flex justify-between items-center z-50 bg-white shadow-md h-12 cursor-pointer">
-        <div class="text-black font-black text-lg"><span class="fz-green">F</span>REEZ<span class="fz-green">O</span>NE</div>
-        <img src="shilla_logo.png" alt="Shilla" class="h-4 w-auto">
+    <header onclick="location.href='index.html'" class="w-full p-3 flex justify-between items-center z-50 bg-white shadow-md h-12 cursor-pointer active:opacity-70">
+        <img src="freezone_logo.png" alt="Freezone" class="h-6 w-auto object-contain">
+        <img src="shilla_logo.png" alt="Shilla" class="h-4 w-auto object-contain">
     </header>
 
-    <main class="flex-grow flex flex-col items-center px-6 relative z-10">
-        <div id="start-section" class="w-full max-w-sm h-full flex flex-col justify-between py-10">
-            <div class="text-right flex flex-col items-end">
-                <p class="text-[14px] font-black tracking-[0.2em] fz-stretch text-white">
+    <main class="flex-grow flex flex-col items-center px-6 relative z-10 h-[calc(100dvh-48px)] overflow-hidden">
+        
+        <div id="start-section" class="w-full max-w-sm h-full flex flex-col justify-between py-8">
+            <div class="text-right flex flex-col items-end space-y-1">
+                <p class="text-[14px] font-black tracking-[0.2em] leading-tight fz-stretch text-white">
                     <span class="fz-green">F</span>reez<span class="fz-green">o</span>ne
                 </p>
-                <div class="border border-white text-[9px] font-bold mt-1 px-1">
-                    <span class="bg-black px-1">SHILLA</span><span class="bg-red-600 px-1">STAFF</span>
+                <div class="inline-flex border border-white rounded-[1px] overflow-hidden">
+                    <span class="bg-black text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-[0.1em]">Shilla</span>
+                    <span class="bg-red-600 text-white text-[9px] font-bold px-1.5 py-0.5 uppercase tracking-[0.1em]">Staff</span>
                 </div>
-                <p class="text-[9px] font-medium tracking-widest text-[#d4af37] mt-1 uppercase">Recognition Training Tool</p>
+                <p class="text-[9px] font-medium uppercase tracking-[0.05em] text-[#d4af37]">Recognition Training Tool</p>
             </div>
 
-            <div class="text-center">
-                <h2 class="text-6xl eng-title font-bold tracking-tighter text-white">Shilla <span class="text-[#d4af37]">Names</span></h2>
-                <p class="text-xl text-white font-light mt-2">임직원 이름 맞추기</p>
-                <div class="mt-8 bg-white/5 backdrop-blur-md py-6 rounded-2xl border border-white/10">
-                    <p class="text-gray-400 text-xs">등록된 임직원 수</p>
-                    <p id="total-count" class="text-5xl font-black text-[#d4af37]">...</p>
+            <div class="space-y-4">
+                <div class="text-center">
+                    <h2 class="text-6xl eng-title font-bold tracking-tighter text-white leading-none">Shilla <span class="text-[#d4af37]">Names</span></h2>
+                    <p class="text-2xl text-white font-light mt-2">임직원 이름 맞추기</p>
+                </div>
+                <div class="bg-white/5 backdrop-blur-md py-6 rounded-2xl border border-white/10 text-center mx-4 shadow-2xl">
+                    <p class="text-gray-400 text-xs">학습 가능한 사진</p>
+                    <p class="text-5xl font-black text-[#d4af37] py-0.5"><span id="total-count">...</span></p>
                 </div>
             </div>
-
-            <button id="start-btn" onclick="startGame()" disabled class="w-full bg-gray-600 text-black py-6 rounded-2xl text-2xl font-black active:scale-95 transition-all">
-                데이터 로딩 중...
-            </button>
-            <p class="text-[10px] text-gray-500 text-center">제작: 정호준</p>
+            
+            <div class="px-2 pb-6 space-y-3">
+                <button id="start-btn" onclick="startGame()" disabled class="w-full bg-gray-600 text-black text-2xl font-black py-6 rounded-2xl shadow-xl active:scale-95 transition-all">
+                    데이터 로딩 중...
+                </button>
+                <p class="text-[10px] font-normal italic tracking-wide text-gray-500 text-right pr-2">
+                    제작 : <span class="ml-1">정호준</span>
+                </p>
+            </div>
         </div>
 
-        <div id="quiz-section" class="hidden w-full max-w-sm flex flex-col space-y-6 pt-6">
-            <div class="relative aspect-[3/4] bg-black rounded-3xl border-2 border-[#d4af37] overflow-hidden shadow-2xl">
-                <img id="employee-img" src="" class="w-full h-full object-contain">
-                <div id="feedback-overlay" class="absolute inset-0 flex items-center justify-center opacity-0 bg-black/60 transition-opacity">
+        <div id="quiz-section" class="hidden w-full max-w-sm flex flex-col h-full space-y-4 py-4">
+            <div class="relative w-full flex-1 bg-black rounded-3xl border-2 border-[#d4af37] overflow-hidden shadow-2xl">
+                <div class="w-full h-full flex items-center justify-center">
+                    <img id="employee-img" src="" alt="Employee" class="max-w-full max-h-full object-contain">
+                </div>
+                <div id="feedback-overlay" class="absolute inset-0 flex items-center justify-center opacity-0 bg-black/60 z-20 pointer-events-none transition-opacity">
                     <div id="feedback-text" class="text-9xl font-bold"></div>
                 </div>
             </div>
-            <div class="flex flex-col items-center space-y-4">
-                <div id="timer-display" class="text-6xl font-black italic tracking-tighter">10.0</div>
-                <div class="flex flex-col items-center">
-                    <div id="mic-container" class="mic-wrapper mb-4">
-                        <button id="mic-btn" class="flex items-center justify-center text-white">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-10 h-10"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" /></svg>
+
+            <div class="flex flex-col items-center space-y-3 pb-8">
+                <div id="result-feedback" class="text-xl font-bold h-7 text-[#d4af37] tracking-wider"></div>
+                <div id="timer-display" class="text-6xl font-black text-white italic tracking-tighter">10.0</div>
+                <div class="flex flex-col items-center w-full pt-2">
+                    <div id="mic-container" class="mic-wrapper mb-3">
+                        <button id="mic-btn" class="flex items-center justify-center shadow-lg active:scale-90 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-10 h-10 text-white">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+                            </svg>
                         </button>
                     </div>
-                    <button onclick="handleAnswer(false)" class="text-gray-500 border-b border-gray-700 text-xs font-bold pb-1">몰라요 (PASS)</button>
+                    <button onclick="handleAnswer(false)" class="px-8 py-2 text-gray-500 text-xs font-bold border-b border-gray-800 active:text-gray-300">몰라요 (PASS)</button>
                 </div>
-                <div id="result-feedback" class="h-6 text-[#d4af37] font-bold text-xl"></div>
             </div>
         </div>
 
-        <div id="result-section" class="hidden w-full max-w-sm flex flex-col items-center justify-center space-y-10 py-20">
-            <div class="bg-black/80 p-10 rounded-[40px] border-4 border-[#d4af37] text-center w-full">
-                <p id="accuracy" class="text-8xl font-black text-[#d4af37]">0%</p>
-                <p class="text-xl text-white mt-4 font-bold"><span id="correct-count">0</span> / <span id="total-quiz">0</span> 정답</p>
+        <div id="result-section" class="hidden w-full max-w-sm h-full flex flex-col justify-center space-y-10 pb-10">
+            <div class="bg-black/60 p-10 rounded-[40px] border-4 border-[#d4af37] text-center shadow-2xl">
+                <p id="accuracy" class="text-8xl font-black text-[#d4af37] eng-title">0%</p>
+                <p class="text-2xl text-white mt-4 font-bold"><span id="correct-count">0</span> / <span id="total-quiz">0</span> 정답</p>
             </div>
-            <button onclick="location.reload()" class="w-full bg-white text-black py-5 rounded-2xl font-black text-xl">다시 도전</button>
+            <button onclick="location.reload()" class="w-full bg-white text-black py-5 rounded-2xl font-black text-xl shadow-xl active:scale-95 transition-all">다시 도전하기</button>
         </div>
     </main>
 
     <script>
         const REPO = "psychjun/shilla-training";
-        let photos = []; let currentIdx = 0; let corrects = 0; let timer; let audioCtx;
+        let photos = []; let currentIdx = 0; let corrects = 0; let timerObj; let timeLeft = 10.0;
 
+        // 사진 로드 및 식단표 필터링
         async function loadPhotos() {
-            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
-            const data = await res.json();
-            photos = data.filter(f => f.name.endsWith('.jpg') && !f.name.includes('logo') && f.name !== 'shilla_center.jpg').map(f => f.name);
-            document.getElementById('total-count').innerText = photos.length;
-            const btn = document.getElementById('start-btn');
-            btn.disabled = false; btn.innerText = "교 육 시 작"; btn.classList.replace('bg-gray-600', 'bg-[#d4af37]');
+            try {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
+                const data = await res.json();
+                // 식단표(food, menu) 및 로고, 배경이미지 철저히 제외
+                photos = data.filter(f => 
+                    f.name.endsWith('.jpg') && 
+                    !['shilla_center.jpg','freezone_logo.png','shilla_logo.png'].includes(f.name) &&
+                    !f.name.toLowerCase().includes('food') && 
+                    !f.name.toLowerCase().includes('menu')
+                ).map(f => f.name);
+                
+                document.getElementById('total-count').innerText = photos.length;
+                if (photos.length > 0) {
+                    const btn = document.getElementById('start-btn');
+                    btn.disabled = false;
+                    btn.innerText = "교 육 시 작";
+                    btn.classList.replace('bg-gray-600', 'bg-[#d4af37]');
+                }
+            } catch (e) { alert("데이터 로딩 실패!"); }
         }
 
         function startGame() {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             photos.sort(() => Math.random() - 0.5);
             document.getElementById('start-section').classList.add('hidden');
             document.getElementById('quiz-section').classList.remove('hidden');
@@ -129,42 +155,52 @@
         }
 
         function startTimer() {
-            let left = 10.0;
+            clearInterval(timerObj);
+            timeLeft = 10.0;
             const disp = document.getElementById('timer-display');
+            disp.innerText = "10.0";
             disp.classList.remove('timer-danger');
-            clearInterval(timer);
-            timer = setInterval(() => {
-                left -= 0.1;
-                disp.innerText = left.toFixed(1);
-                if (left <= 3.0) disp.classList.add('timer-danger');
-                if (left <= 0) { clearInterval(timer); handleAnswer(false); }
+            timerObj = setInterval(() => {
+                timeLeft -= 0.1;
+                disp.innerText = Math.max(0, timeLeft).toFixed(1);
+                if (timeLeft <= 3.0) disp.classList.add('timer-danger');
+                if (timeLeft <= 0) { clearInterval(timerObj); handleAnswer(false); }
             }, 100);
         }
 
         function handleAnswer(isCorrect) {
-            clearInterval(timer);
+            clearInterval(timerObj);
             const name = photos[currentIdx].split('_')[0].split('.')[0];
             const overlay = document.getElementById('feedback-overlay');
             const text = document.getElementById('feedback-text');
             overlay.style.opacity = "1";
-            if (isCorrect) { text.innerText = "✅"; text.style.color = "#22c55e"; corrects++; }
-            else { text.innerText = "❌"; text.style.color = "#ef4444"; document.getElementById('result-feedback').innerText = "정답: " + name; }
+            
+            if (isCorrect) {
+                text.innerText = "✅"; text.style.color = "#22c55e"; corrects++;
+            } else {
+                text.innerText = "❌"; text.style.color = "#ef4444";
+                document.getElementById('result-feedback').innerText = "정답: " + name;
+            }
+            
             setTimeout(() => { currentIdx++; showQuestion(); }, 1500);
         }
 
         function showResult() {
             document.getElementById('quiz-section').classList.add('hidden');
             document.getElementById('result-section').classList.remove('hidden');
-            document.getElementById('accuracy').innerText = Math.round((corrects/photos.length)*100) + "%";
+            document.getElementById('accuracy').innerText = Math.round((corrects / photos.length) * 100) + "%";
             document.getElementById('correct-count').innerText = corrects;
             document.getElementById('total-quiz').innerText = photos.length;
         }
 
+        // 음성 인식 로직
         const SRec = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SRec) {
-            const rec = new SRec(); rec.lang = 'ko-KR';
+            const rec = new SRec(); rec.lang = 'ko-KR'; rec.continuous = false;
             const micCont = document.getElementById('mic-container');
-            document.getElementById('mic-btn').onclick = () => { try { rec.start(); } catch(e){} };
+            const micBtn = document.getElementById('mic-btn');
+
+            micBtn.onclick = () => { try { rec.start(); } catch(e) {} };
             rec.onstart = () => micCont.classList.add('mic-active');
             rec.onend = () => micCont.classList.remove('mic-active');
             rec.onresult = (e) => {
@@ -173,6 +209,7 @@
                 handleAnswer(result.includes(answer));
             };
         }
+
         window.onload = loadPhotos;
     </script>
 </body>
