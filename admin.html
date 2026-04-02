@@ -2,123 +2,99 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Freezone Admin</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Admin - Access Logs</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body { font-family: 'Noto Sans KR', sans-serif; background-color: #000; color: white; margin: 0; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        .btn-tab.active { border-bottom: 2px solid #d4af37; color: #d4af37; }
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #0b0b0b; color: white; min-height: 100vh; }
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: #222; border: 1px solid #333; border-radius: 12px; overflow: hidden; }
+        .day-cell { aspect-ratio: 1; background: #0b0b0b; padding: 10px; display: flex; flex-col; justify-content: space-between; cursor: pointer; transition: 0.2s; }
+        .day-cell:hover { background: #1a1a1a; }
+        .day-cell.has-log { border-bottom: 3px solid #10b981; }
+        .day-cell.today { background: #10b98120; font-weight: bold; }
+        .log-list { max-height: 250px; overflow-y: auto; }
+        .fz-green { color: #10b981; }
     </style>
 </head>
 <body class="p-6">
-    <header onclick="location.href='index.html'" class="mb-8 cursor-pointer">
-        <h1 class="text-xl font-bold text-[#d4af37]">⚙️ 관리자 모드</h1>
-        <p class="text-xs text-gray-500">Freezone Management System</p>
+    <header class="flex justify-between items-center mb-10">
+        <h1 class="text-2xl font-black"><span class="fz-green">A</span>DMIN LOGS</h1>
+        <button onclick="location.href='index.html'" class="text-xs text-gray-500 border border-gray-700 px-3 py-1 rounded">닫기</button>
     </header>
 
-    <div class="flex border-b border-gray-800 mb-6 text-sm">
-        <button onclick="openTab('logs')" id="tab-logs-btn" class="btn-tab flex-1 py-2 active">접속 기록</button>
-        <button onclick="openTab('pw')" id="tab-pw-btn" class="btn-tab flex-1 py-2">비밀번호 관리</button>
-        <button onclick="openTab('content')" id="tab-content-btn" class="btn-tab flex-1 py-2">콘텐츠</button>
-    </div>
-
-    <div id="logs" class="tab-content active space-y-4">
-        <h2 class="text-sm font-bold">최근 접속 로그 (아이디별)</h2>
-        <div id="log-list" class="bg-gray-900 rounded-lg p-4 text-[11px] space-y-2 max-h-80 overflow-y-auto">
-            </div>
-        <button onclick="clearLogs()" class="w-full py-2 text-[10px] text-red-500 border border-red-900 rounded">기록 초기화</button>
-    </div>
-
-    <div id="pw" class="tab-content space-y-4">
-        <div id="pw-controls" class="bg-gray-900 p-4 rounded-lg space-y-4">
-            </div>
-        <p class="text-[10px] text-gray-500">* 실제 깃허브 서버 비밀번호를 바꾸려면 기술적 연동이 추가로 필요합니다. 현재는 UI 예시입니다.</p>
-    </div>
-
-    <div id="content" class="tab-content space-y-4">
-        <div class="p-4 bg-gray-900 rounded-lg">
-            <p class="text-xs mb-2">식단표 수동 업데이트</p>
-            <button class="w-full bg-[#d4af37] text-black py-2 rounded text-xs font-bold">GitHub Action 실행</button>
+    <section class="max-w-md mx-auto space-y-8">
+        <div>
+            <h2 id="month-title" class="text-lg font-bold mb-4 text-[#d4af37]">2026.04</h2>
+            <div class="calendar-grid" id="calendar-body">
+                </div>
         </div>
-    </div>
+
+        <div id="log-detail-section" class="hidden bg-white/5 rounded-3xl p-6 border border-white/10">
+            <h3 id="selected-date-title" class="text-sm font-bold text-[#10b981] mb-4">4월 2일 접속 기록</h3>
+            <div id="log-list" class="log-list space-y-2">
+                </div>
+        </div>
+    </section>
 
     <script>
-        const role = sessionStorage.getItem('userRole');
+        let logs = JSON.parse(localStorage.getItem('shilla_logs') || '[]');
 
-        function openTab(id) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.btn-tab').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            document.getElementById('tab-'+id+'-btn').classList.add('active');
-        }
+        function renderCalendar() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            document.getElementById('month-title').innerText = `${year}.${month + 1}`;
 
-        // 로그 불러오기
-        function loadLogs() {
-            const logs = JSON.parse(localStorage.getItem('loginLogs') || '[]');
-            const list = document.getElementById('log-list');
-            if(logs.length === 0) {
-                list.innerHTML = "<p class='text-gray-600'>접속 기록이 없습니다.</p>";
-            } else {
-                list.innerHTML = logs.reverse().map(l => `
-                    <div class="flex justify-between border-b border-gray-800 pb-1">
-                        <span class="text-gray-400">${l.time}</span>
-                        <span class="font-bold text-emerald-400">${l.user} 접속</span>
-                    </div>
-                `).join('');
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+            const calendarBody = document.getElementById('calendar-body');
+            calendarBody.innerHTML = '';
+
+            // 빈 칸 (첫 주 요일 맞추기)
+            for (let i = 0; i < firstDay; i++) {
+                calendarBody.innerHTML += `<div class="day-cell opacity-20"></div>`;
             }
-        }
 
-        function clearLogs() {
-            if(confirm('모든 접속 기록을 삭제하시겠습니까?')) {
-                localStorage.removeItem('loginLogs');
-                loadLogs();
-            }
-        }
+            // 실제 날짜
+            for (let d = 1; d <= lastDate; d++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const dayLogs = logs.filter(l => l.time.startsWith(dateStr));
+                const isToday = d === now.getDate() ? 'today' : '';
+                const hasLog = dayLogs.length > 0 ? 'has-log' : '';
 
-        // 비밀번호 관리 UI 생성
-        function loadPWManager() {
-            const container = document.getElementById('pw-controls');
-            const USERS = { "1st": "freezone1011", "2nd": "freezone2022", "3rd": "freezone3033", "master": "freezone9999" };
-            const NAMES = { "1st": "1조", "2nd": "2조", "3rd": "3조", "master": "Master" };
-
-            let html = "";
-            if (role === 'master') {
-                // 마스터는 모두 보고 수정 가능
-                for (let id in USERS) {
-                    html += `
-                        <div class="flex flex-col space-y-1 pb-3 border-b border-gray-800">
-                            <span class="text-xs text-[#d4af37]">${NAMES[id]}</span>
-                            <div class="flex gap-2">
-                                <input type="text" value="${USERS[id]}" id="pw-${id}" class="flex-1 bg-black p-2 rounded text-xs">
-                                <button onclick="alert('${NAMES[id]} 비번 변경!')" class="bg-gray-700 px-3 rounded text-[10px]">변경</button>
-                            </div>
-                        </div>
-                    `;
-                }
-            } else {
-                // 일반 조는 자기 것만 수정 가능
-                html = `
-                    <div class="flex flex-col space-y-1">
-                        <span class="text-xs text-[#d4af37]">${NAMES[role]} 비밀번호 변경</span>
-                        <div class="flex gap-2">
-                            <input type="password" placeholder="새 비밀번호 입력" class="flex-1 bg-black p-2 rounded text-xs">
-                            <button onclick="alert('비밀번호가 변경되었습니다!')" class="bg-gray-700 px-3 rounded text-[10px]">변경</button>
-                        </div>
+                calendarBody.innerHTML += `
+                    <div class="day-cell ${isToday} ${hasLog}" onclick="showLogs('${dateStr}')">
+                        <span class="text-xs">${d}</span>
+                        ${dayLogs.length > 0 ? `<span class="text-[8px] fz-green font-bold">${dayLogs.length}건</span>` : ''}
                     </div>
                 `;
             }
-            container.innerHTML = html;
         }
 
-        window.onload = () => {
-            if(role !== 'master' && role !== '1st' && role !== '2nd' && role !== '3rd') {
-                location.href = 'index.html';
+        function showLogs(date) {
+            const section = document.getElementById('log-detail-section');
+            const list = document.getElementById('log-list');
+            const title = document.getElementById('selected-date-title');
+            
+            const dayLogs = logs.filter(l => l.time.startsWith(date)).reverse();
+            
+            if (dayLogs.length === 0) {
+                alert("해당 날짜의 기록이 없습니다.");
+                return;
             }
-            loadLogs();
-            loadPWManager();
-        };
+
+            section.classList.remove('hidden');
+            title.innerText = `${date} 접속 기록`;
+            list.innerHTML = dayLogs.map(l => `
+                <div class="flex justify-between items-center bg-black/40 p-3 rounded-xl border border-white/5">
+                    <span class="font-bold text-white text-sm">${l.user}</span>
+                    <span class="text-[10px] text-gray-500">${new Date(l.time).toLocaleTimeString()}</span>
+                </div>
+            `).join('');
+        }
+
+        renderCalendar();
     </script>
 </body>
 </html>

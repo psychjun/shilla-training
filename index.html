@@ -11,26 +11,33 @@
         .app-card { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.2); transition: all 0.2s; }
         .app-card:active { transform: scale(0.92); background: rgba(255, 255, 255, 0.25); }
         .bg-shilla { background-image: url('shilla_center.jpg'); background-size: cover; background-position: center; }
+        /* 시그니처 로고 스타일 */
+        .fz-logo { font-weight: 900; letter-spacing: -0.05em; }
+        .fz-green { color: #10b981; } /* 에메랄드 초록 */
     </style>
 </head>
 <body class="bg-shilla flex flex-col items-center">
     <div class="absolute inset-0 bg-black/75 z-0"></div>
 
     <header class="w-full p-3 flex justify-between items-center z-50 bg-white shadow-md h-12">
-        <img src="freezone_logo.png" alt="Freezone" class="h-6 w-auto">
+        <div class="fz-logo text-black text-xl">
+            <span class="fz-green">F</span>REEZ<span class="fz-green">O</span>NE
+        </div>
         <img src="shilla_logo.png" alt="Shilla" class="h-4 w-auto">
     </header>
 
     <main class="relative z-10 w-full max-w-sm flex-grow flex flex-col items-center pt-12 px-8">
         <div id="login-section" class="w-full space-y-8 mt-10">
             <div class="text-center">
-                <h1 class="text-5xl font-black text-[#d4af37] tracking-tighter mb-2">FREEZONE</h1>
+                <h1 class="text-6xl fz-logo mb-2 tracking-tighter">
+                    <span class="fz-green">F</span>REEZ<span class="fz-green">O</span>NE
+                </h1>
                 <p class="text-gray-400 text-[10px] tracking-widest uppercase">Security Portal</p>
             </div>
             <div class="space-y-3">
-                <input type="text" id="user-id" placeholder="ID" class="w-full p-4 bg-white/10 border border-white/20 rounded-2xl text-white outline-none focus:border-[#d4af37]">
-                <input type="password" id="user-pw" placeholder="Password" class="w-full p-4 bg-white/10 border border-white/20 rounded-2xl text-white outline-none focus:border-[#d4af37]">
-                <button onclick="checkLogin()" class="w-full bg-[#d4af37] text-black font-black py-4 rounded-2xl shadow-xl active:scale-95 transition-all mt-4">로그인</button>
+                <input type="text" id="user-id" placeholder="ID" class="w-full p-4 bg-white/10 border border-white/20 rounded-2xl text-white outline-none focus:border-[#10b981]">
+                <input type="password" id="user-pw" placeholder="Password" class="w-full p-4 bg-white/10 border border-white/20 rounded-2xl text-white outline-none focus:border-[#10b981]">
+                <button onclick="checkLogin()" class="w-full bg-[#10b981] text-white font-black py-4 rounded-2xl shadow-xl active:scale-95 transition-all mt-4">로그인</button>
             </div>
             <p id="login-error" class="text-red-500 text-xs text-center h-4 font-bold"></p>
         </div>
@@ -39,7 +46,7 @@
             <div class="flex justify-between items-start mb-10">
                 <div>
                     <h2 class="text-3xl font-black text-white"><span id="welcome-user"></span>,</h2>
-                    <p class="text-[#d4af37] font-bold mt-1">오늘도 안전근무 하십시오.</p>
+                    <p class="text-[#10b981] font-bold mt-1">오늘도 안전근무 하십시오.</p>
                 </div>
                 <button onclick="logout()" class="text-[10px] text-gray-500 border border-gray-700 px-2 py-1 rounded-md">로그아웃</button>
             </div>
@@ -47,7 +54,7 @@
             <div class="grid grid-cols-3 gap-6 w-full">
                 <button onclick="location.href='quiz.html'" class="flex flex-col items-center space-y-2">
                     <div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">👤</div>
-                    <span class="text-[11px] font-bold text-gray-300">이름 맞추기</span>
+                    <span class="text-[11px] font-bold text-gray-300">Shilla Names</span>
                 </button>
                 <button onclick="location.href='food.html'" class="flex flex-col items-center space-y-2">
                     <div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">🍱</div>
@@ -55,7 +62,7 @@
                 </button>
                 <button onclick="goToAdmin()" class="flex flex-col items-center space-y-2">
                     <div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">⚙️</div>
-                    <span class="text-[11px] font-bold text-[#d4af37]">관리자</span>
+                    <span class="text-[11px] font-bold text-[#10b981]">관리자</span>
                 </button>
                 <div class="flex flex-col items-center space-y-2 opacity-25"><div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">🔦</div><span class="text-[11px]">순찰</span></div>
                 <div class="flex flex-col items-center space-y-2 opacity-25"><div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">🛡️</div><span class="text-[11px]">출입검색</span></div>
@@ -78,6 +85,12 @@
             if (USERS[id] && USERS[id] === pw) {
                 sessionStorage.setItem('isLoggedIn', 'true');
                 sessionStorage.setItem('userRole', id);
+                
+                // 로그인 로그 기록
+                let logs = JSON.parse(localStorage.getItem('shilla_logs') || '[]');
+                logs.push({ user: NAMES[id], time: new Date().toISOString() });
+                localStorage.setItem('shilla_logs', JSON.stringify(logs));
+
                 showMenu(id);
             } else {
                 document.getElementById('login-error').innerText = "아이디 또는 비밀번호가 틀립니다.";
