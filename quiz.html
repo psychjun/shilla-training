@@ -12,7 +12,7 @@
         .fz-stretch { display: inline-block; transform: scaleY(1.35); transform-origin: center; }
         .fz-green { color: #10b981; } /* 시그니처 초록색 */
 
-        /* 마이크 푸른색/에메랄드 회전 글로우 효과 (팀장님이 말씀하신 그 디자인!) */
+        /* 마이크 푸른색/에메랄드 회전 글로우 효과 */
         .mic-wrapper { position: relative; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.3s ease; }
         .mic-wrapper.mic-active::before { 
             content: ""; position: absolute; inset: -5px; border-radius: 50%; 
@@ -115,13 +115,30 @@
     <script>
         const REPO = "psychjun/shilla-training";
         let photos = []; let currentIdx = 0; let corrects = 0; let timerObj; let timeLeft = 10.0;
+        
+        // [소리 기능] 오디오 컨텍스트 선언
+        let audioCtx = null;
 
-        // 사진 로드 및 식단표 필터링
+        // [소리 기능] 삑! 소리 재생 함수
+        function playBuzzer() {
+            if (!audioCtx) return;
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.type = 'sine';
+                osc.frequency.value = 800; // 삑! 소리 주파수
+                gain.gain.value = 0.1;
+                osc.start();
+                setTimeout(() => osc.stop(), 200); // 0.2초간 재생
+            } catch(e) { console.log(e); }
+        }
+
         async function loadPhotos() {
             try {
                 const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
                 const data = await res.json();
-                // 식단표(food, menu) 및 로고, 배경이미지 철저히 제외
                 photos = data.filter(f => 
                     f.name.endsWith('.jpg') && 
                     !['shilla_center.jpg','freezone_logo.png','shilla_logo.png'].includes(f.name) &&
@@ -140,6 +157,9 @@
         }
 
         function startGame() {
+            // [소리 기능] 첫 클릭 시 오디오 엔진 활성화
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
             photos.sort(() => Math.random() - 0.5);
             document.getElementById('start-section').classList.add('hidden');
             document.getElementById('quiz-section').classList.remove('hidden');
@@ -164,7 +184,11 @@
                 timeLeft -= 0.1;
                 disp.innerText = Math.max(0, timeLeft).toFixed(1);
                 if (timeLeft <= 3.0) disp.classList.add('timer-danger');
-                if (timeLeft <= 0) { clearInterval(timerObj); handleAnswer(false); }
+                if (timeLeft <= 0) { 
+                    clearInterval(timerInterval); 
+                    playBuzzer(); // [소리 기능] 시간 초과 시 소리 재생
+                    handleAnswer(false); 
+                }
             }, 100);
         }
 
@@ -178,6 +202,7 @@
             if (isCorrect) {
                 text.innerText = "✅"; text.style.color = "#22c55e"; corrects++;
             } else {
+                playBuzzer(); // [소리 기능] 오답 시 소리 재생
                 text.innerText = "❌"; text.style.color = "#ef4444";
                 document.getElementById('result-feedback').innerText = "정답: " + name;
             }
