@@ -1,0 +1,27 @@
+name: Auto Meal Update
+
+on:
+  schedule:
+    - cron: '0 21 * * 0' # UTC 시간 기준 (한국 시간 월요일 오전 6시)
+  workflow_dispatch: # 관리자 모드에서 수동 실행 가능하게 함
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: pip install requests beautifulsoup4
+      - name: Run Crawler
+        run: python meal_crawler.py
+      - name: Commit and Push
+        run: |
+          git config --global user.name "Auto Bot"
+          git config --global user.email "bot@github.com"
+          git add food_menu.jpg
+          git commit -m "Update meal menu" || exit 0
+          git push
