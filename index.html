@@ -81,12 +81,13 @@
             const pw = document.getElementById('user-pw').value;
             const btn = document.getElementById('login-btn');
             
-            btn.innerText = "접속 중...";
+            btn.innerText = "데이터 확인 중...";
             btn.disabled = true;
 
             try {
-                // GitHub에서 실시간 비번 파일 로드 (캐시 방지 타임스탬프 추가)
+                // 캐시 방지를 위해 랜덤 쿼리 추가하여 GitHub에서 최신 JSON 로드
                 const res = await fetch(`https://raw.githubusercontent.com/${REPO}/main/shilla_users.json?t=${new Date().getTime()}`);
+                if(!res.ok) throw new Error();
                 const USERS = await res.json();
 
                 if (USERS[id] && USERS[id] === pw) {
@@ -95,10 +96,10 @@
                     sessionStorage.setItem('userName', NAMES[id]);
                     showMenu(id);
                 } else {
-                    document.getElementById('login-error').innerText = "아이디 또는 비밀번호가 틀립니다.";
+                    document.getElementById('login-error').innerText = "ID 또는 비밀번호가 틀립니다.";
                 }
             } catch (e) {
-                alert("서버 연결 실패! shilla_users.json 파일이 있는지 확인하세요.");
+                alert("서버 비번 파일을 찾을 수 없습니다. GitHub에 shilla_users.json 파일을 먼저 생성하세요.");
             } finally {
                 btn.innerText = "로그인";
                 btn.disabled = false;
