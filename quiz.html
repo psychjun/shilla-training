@@ -12,7 +12,7 @@
         .fz-stretch { display: inline-block; transform: scaleY(1.35); transform-origin: center; }
         .fz-green { color: #10b981; } /* 시그니처 초록색 */
 
-        /* 마이크 푸른색/에메랄드 회전 글로우 효과 */
+        /* 마이크 에메랄드 회전 글로우 효과 (오리지널 디자인) */
         .mic-wrapper { position: relative; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.3s ease; }
         .mic-wrapper.mic-active::before { 
             content: ""; position: absolute; inset: -5px; border-radius: 50%; 
@@ -38,8 +38,8 @@
     <div class="absolute inset-0 bg-black/85 z-0"></div>
 
     <header onclick="location.href='index.html'" class="w-full p-3 flex justify-between items-center z-50 bg-white shadow-md h-14 cursor-pointer active:opacity-70 transition-opacity">
-        <img src="freezone_logo.png" alt="Freezone" class="h-6 w-auto">
-        <img src="shilla_logo.png" alt="Shilla" class="h-7 w-auto">
+        <img src="freezone_logo.png" alt="Freezone" class="h-6 w-auto object-contain">
+        <img src="shilla_logo.png" alt="Shilla" class="h-7 w-auto object-contain">
     </header>
 
     <main class="flex-grow flex flex-col items-center px-6 relative z-10 h-[calc(100dvh-56px)] overflow-hidden">
@@ -116,8 +116,8 @@
         const REPO = "psychjun/shilla-training";
         let photos = []; let currentIdx = 0; let corrects = 0; let timerObj; let timeLeft = 10.0;
         
+        // [소리 기능] Web Audio API
         let audioCtx = null;
-
         function playBuzzer() {
             if (!audioCtx) return;
             try {
@@ -125,11 +125,8 @@
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.connect(gain); gain.connect(audioCtx.destination);
-                osc.type = 'sine';
-                osc.frequency.value = 800;
-                gain.gain.value = 0.1;
-                osc.start();
-                setTimeout(() => osc.stop(), 200);
+                osc.type = 'sine'; osc.frequency.value = 800; gain.gain.value = 0.1;
+                osc.start(); setTimeout(() => osc.stop(), 200);
             } catch(e) { console.log(e); }
         }
 
