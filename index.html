@@ -18,9 +18,9 @@
 <body class="bg-shilla flex flex-col items-center">
     <div class="absolute inset-0 bg-black/75 z-0"></div>
 
-    <header class="w-full p-3 flex justify-between items-center z-50 bg-white shadow-md h-12">
+    <header class="w-full p-3 flex justify-between items-center z-50 bg-white shadow-md h-14">
         <img src="freezone_logo.png" alt="Freezone" class="h-6 w-auto">
-        <img src="shilla_logo.png" alt="Shilla" class="h-4 w-auto">
+        <img src="shilla_logo.png" alt="Shilla" class="h-7 w-auto"> 
     </header>
 
     <main class="relative z-10 w-full max-w-sm flex-grow flex flex-col items-center pt-12 px-8">
@@ -57,7 +57,7 @@
                     <div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">🍱</div>
                     <span class="text-[11px] font-bold text-gray-300">구내식당</span>
                 </button>
-                <button onclick="location.href='admin.html'" class="flex flex-col items-center space-y-2">
+                <button id="admin-btn" onclick="location.href='admin.html'" class="hidden flex flex-col items-center space-y-2">
                     <div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">⚙️</div>
                     <span class="text-[11px] font-bold text-[#10b981]">관리자</span>
                 </button>
@@ -65,17 +65,19 @@
                     <div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">🔦</div>
                     <span class="text-[11px] font-bold text-gray-300">순찰업무</span>
                 </button>
-                <div class="flex flex-col items-center space-y-2 opacity-25"><div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">🛡️</div><span class="text-[11px]">출입검색</span></div>
-                <div class="flex flex-col items-center space-y-2 opacity-25"><div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">🚨</div><span class="text-[11px]">비상연락</span></div>
             </div>
         </div>
     </main>
 
-    <footer class="relative z-10 w-full text-center pb-8 text-[11px] text-gray-600 font-bold tracking-widest">제작: 정호준</footer>
-
     <script>
-        const NAMES = { "1st": "1조 주임", "2nd": "2조 주임", "3rd": "3조 주임", "master": "Master" };
-        const USERS = { "1st": "freezone1011", "2nd": "freezone2022", "3rd": "freezone3033", "master": "freezone9999" };
+        const NAMES = { 
+            "1st": "1조 조원", "2nd": "2조 조원", "3rd": "3조 조원",
+            "1st_l": "1조 주임", "2nd_l": "2조 주임", "3rd_l": "3조 주임", "master": "Master" 
+        };
+        const USERS = { 
+            "1st": "1111", "2nd": "2222", "3rd": "3333",
+            "1st_l": "free11", "2nd_l": "free22", "3rd_l": "free33", "master": "admin99" 
+        };
 
         function checkLogin() {
             const id = document.getElementById('user-id').value;
@@ -85,8 +87,10 @@
                 sessionStorage.setItem('userRole', id);
                 sessionStorage.setItem('userName', NAMES[id]);
                 
-                // 로그인 로그 기록
-                saveLog(`${NAMES[id]} 로그인`);
+                // 로그인 로그 기록 (주임 이상만 관리자 메뉴 노출)
+                if(id.includes('_l') || id === 'master') {
+                    saveLog(`${NAMES[id]} 관리자 접속`);
+                }
                 showMenu(id);
             } else {
                 document.getElementById('login-error').innerText = "ID/PW가 틀립니다.";
@@ -95,7 +99,7 @@
 
         function saveLog(action) {
             let logs = JSON.parse(localStorage.getItem('shilla_system_logs') || '[]');
-            logs.push({ user: sessionStorage.getItem('userName') || 'Unknown', action: action, time: new Date().toISOString() });
+            logs.push({ user: sessionStorage.getItem('userName'), action: action, time: new Date().toISOString() });
             localStorage.setItem('shilla_system_logs', JSON.stringify(logs));
         }
 
@@ -103,13 +107,14 @@
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('menu-section').classList.remove('hidden');
             document.getElementById('welcome-user').innerText = NAMES[role];
+            // 주임 계정 이상만 관리자 버튼 활성화
+            if(role.includes('_l') || role === 'master') {
+                document.getElementById('admin-btn').classList.remove('hidden');
+            }
         }
 
         function logout() { sessionStorage.clear(); location.replace('index.html'); }
-
-        window.onload = () => {
-            if (sessionStorage.getItem('isLoggedIn') === 'true') showMenu(sessionStorage.getItem('userRole'));
-        };
+        window.onload = () => { if (sessionStorage.getItem('isLoggedIn') === 'true') showMenu(sessionStorage.getItem('userRole')); };
     </script>
 </body>
 </html>
