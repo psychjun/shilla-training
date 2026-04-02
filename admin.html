@@ -15,7 +15,6 @@
         .day-cell { aspect-ratio: 1; border: 1px solid #222; font-size: 10px; padding: 4px; cursor: pointer; position: relative; }
         .day-cell.has-log::after { content: ''; position: absolute; bottom: 4px; right: 4px; width: 4px; height: 4px; background: #10b981; border-radius: 50%; }
         
-        /* 비번 관리 카드 스타일 */
         .pw-card { background: #1a1a1a; border-left: 4px solid #10b981; transition: 0.2s; }
         .pw-input { background: #000; border: 1px solid #333; color: #10b981; padding: 10px; border-radius: 10px; width: 100%; outline: none; font-family: monospace; }
         .thumb-checkbox { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; accent-color: #10b981; z-index: 10; }
@@ -23,8 +22,11 @@
 </head>
 <body class="pb-20">
     <header class="w-full p-3 flex justify-between items-center z-50 bg-white shadow-md h-14">
-        <div class="text-black font-black text-lg"><span class="fz-green">A</span>DMIN</div>
-        <img src="shilla_logo.png" alt="Shilla" class="h-7 w-auto cursor-pointer" onclick="location.href='index.html'">
+        <div onclick="location.href='index.html'" class="flex items-center cursor-pointer active:opacity-70 transition-opacity">
+            <div class="text-black font-black text-lg mr-2"><span class="fz-green">A</span>DMIN</div>
+            <div class="text-[10px] text-gray-400 font-bold border border-gray-200 px-1.5 py-0.5 rounded uppercase tracking-tighter">Exit</div>
+        </div>
+        <img src="shilla_logo.png" alt="Shilla" class="h-7 w-auto cursor-pointer active:opacity-70 transition-opacity" onclick="location.href='index.html'">
     </header>
 
     <nav class="flex border-b border-gray-800 bg-black sticky top-0 z-50 overflow-x-auto">
@@ -80,8 +82,7 @@
         <div id="sec-user" class="tab-content hidden space-y-4">
             <div class="admin-card">
                 <h3 class="text-blue-400 font-bold mb-6 italic tracking-widest">PASSWORD SECURITY</h3>
-                <div id="user-list-container" class="space-y-4">
-                    </div>
+                <div id="user-list-container" class="space-y-4"></div>
             </div>
         </div>
 
@@ -101,7 +102,6 @@
         const role = sessionStorage.getItem('userRole') || 'guest';
         const userName = sessionStorage.getItem('userName') || 'Unknown';
         
-        // 계정 데이터 로드
         let USERS_DATA = JSON.parse(localStorage.getItem('shilla_users') || JSON.stringify({
             "1st": "1111", "2nd": "2222", "3rd": "3333",
             "1st_l": "free11", "2nd_l": "free22", "3rd_l": "free33", "master": "admin99"
@@ -123,22 +123,16 @@
             if(tab === 'log') renderCalendar();
         }
 
-        // --- 비밀번호 관리 (권한별 필터링 핵심 로직) ---
         function renderUserManagement() {
             const container = document.getElementById('user-list-container');
             container.innerHTML = '';
-
             Object.entries(USERS_DATA).forEach(([id, pw]) => {
                 let canManage = false;
-
-                // 권한 체크: Master는 전체, 주임(_l)은 본인 계정 및 해당 조 계정 관리
-                if (role === 'master') {
-                    canManage = true;
-                } else if (role.includes('_l')) {
-                    const squadPrefix = role.split('_')[0]; // 예: '1st'
+                if (role === 'master') canManage = true;
+                else if (role.includes('_l')) {
+                    const squadPrefix = role.split('_')[0];
                     if (id === role || id === squadPrefix) canManage = true;
                 }
-
                 if (canManage) {
                     const card = document.createElement('div');
                     card.className = "pw-card p-4 rounded-xl space-y-3 shadow-lg";
@@ -173,7 +167,6 @@
         function updatePw(id) {
             const newPw = document.getElementById(`pw-input-${id}`).value;
             if(!newPw) return alert("비밀번호를 입력하세요.");
-            
             USERS_DATA[id] = newPw;
             localStorage.setItem('shilla_users', JSON.stringify(USERS_DATA));
             addLog(`비밀번호 변경 완료: ${id}`);
@@ -181,14 +174,12 @@
             renderUserManagement();
         }
 
-        // --- 활동 로그 기록 ---
         function addLog(action) {
             let logs = JSON.parse(localStorage.getItem('shilla_system_logs') || '[]');
             logs.push({ user: userName, action: action, time: new Date().toISOString() });
             localStorage.setItem('shilla_system_logs', JSON.stringify(logs));
         }
 
-        // --- 식단표 수동 갱신 ---
         async function refreshFoodMenu() {
             const previewBox = document.getElementById('food-preview-box');
             const previewImg = document.getElementById('food-preview-img');
@@ -202,7 +193,6 @@
             };
         }
 
-        // --- 기타 로직 (사진 검색/삭제, 매뉴얼 저장, 캘린더) ---
         function saveManual() {
             localStorage.setItem('manual_patrol', document.getElementById('manual-text').value);
             addLog("매뉴얼 텍스트 수정");
@@ -233,9 +223,69 @@
             `).join('') || "기록 없음";
         }
         
-        async function handleUpload() { /* (기존 업로드 로직 유지) */ }
-        async function searchPhotos() { /* (기존 검색 로직 유지) */ }
-        async function deleteSelected() { /* (기존 삭제 로직 유지) */ }
+        async function handleUpload() { 
+            const token = document.getElementById('gh-token').value;
+            const name = document.getElementById('upload-name').value.trim();
+            const fileInput = document.getElementById('file-input');
+            if(!token || !name || !fileInput.files[0]) return alert("정보 부족");
+            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
+            const files = await res.json();
+            const fileName = `${name}_${files.filter(f=>f.name.startsWith(name)).length + 1}.jpg`;
+            const reader = new FileReader();
+            reader.readAsDataURL(fileInput.files[0]);
+            reader.onload = async () => {
+                const base64 = reader.result.split(',')[1];
+                const uploadRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${fileName}`, {
+                    method: "PUT",
+                    headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: `Upload ${fileName}`, content: base64 })
+                });
+                if(uploadRes.ok) { addLog(`사진 등록: ${fileName}`); alert("성공"); }
+            };
+        }
+
+        async function searchPhotos() {
+            const name = document.getElementById('search-name').value.trim();
+            const resBox = document.getElementById('search-results');
+            if(!name) return alert("검색어를 입력하세요.");
+            resBox.innerHTML = "<p class='col-span-2 text-center text-xs py-4'>검색 중...</p>";
+            try {
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
+                const data = await res.json();
+                const found = data.filter(f => f.name.includes(name) && f.name.endsWith('.jpg'));
+                if(found.length === 0) {
+                    resBox.innerHTML = "<p class='col-span-2 text-center text-xs py-4 text-gray-500'>결과 없음</p>";
+                    document.getElementById('del-btn').classList.add('hidden');
+                    return;
+                }
+                resBox.innerHTML = found.map(f => `
+                    <div class="relative bg-black border border-gray-800 rounded-lg overflow-hidden">
+                        <img src="${f.download_url}" class="w-full aspect-square object-cover opacity-60">
+                        <input type="checkbox" class="thumb-checkbox" value="${f.sha}" data-name="${f.name}">
+                        <div class="absolute bottom-0 left-0 right-0 bg-black/80 p-1 text-[9px] text-center truncate">${f.name}</div>
+                    </div>
+                `).join('');
+                document.getElementById('del-btn').classList.remove('hidden');
+            } catch(e) { alert("연동 실패"); }
+        }
+
+        async function deleteSelected() {
+            const token = document.getElementById('gh-token').value;
+            const checks = document.querySelectorAll('.thumb-checkbox:checked');
+            if(!token || checks.length === 0) return alert("토큰 입력 및 사진 선택 필수!");
+            if(!confirm(`선택한 ${checks.length}개 삭제?`)) return;
+            for(let c of checks) {
+                const n = c.getAttribute('data-name');
+                const s = c.value;
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${n}`, {
+                    method: "DELETE",
+                    headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: `Delete ${n}`, sha: s })
+                });
+                if(res.ok) addLog(`사진 삭제: ${n}`);
+            }
+            alert("삭제 완료"); searchPhotos();
+        }
     </script>
 </body>
 </html>
