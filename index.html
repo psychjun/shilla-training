@@ -34,7 +34,7 @@
             <div class="space-y-3">
                 <input type="text" id="user-id" placeholder="ID" class="w-full p-4 bg-white/10 border border-white/20 rounded-2xl text-white outline-none focus:border-[#10b981]">
                 <input type="password" id="user-pw" placeholder="Password" class="w-full p-4 bg-white/10 border border-white/20 rounded-2xl text-white outline-none focus:border-[#10b981]">
-                <button onclick="checkLogin()" class="w-full bg-[#10b981] text-white font-black py-4 rounded-2xl shadow-xl active:scale-95 transition-all mt-4">로그인</button>
+                <button id="login-btn" onclick="checkLogin()" class="w-full bg-[#10b981] text-white font-black py-4 rounded-2xl shadow-xl active:scale-95 transition-all mt-4">로그인</button>
             </div>
             <p id="login-error" class="text-red-500 text-xs text-center h-4 font-bold"></p>
         </div>
@@ -47,7 +47,6 @@
                 </div>
                 <button onclick="logout()" class="text-[10px] text-gray-500 border border-gray-700 px-2 py-1 rounded-md">로그아웃</button>
             </div>
-
             <div class="grid grid-cols-3 gap-6 w-full">
                 <button onclick="location.href='quiz.html'" class="flex flex-col items-center space-y-2">
                     <div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">👤</div>
@@ -74,71 +73,49 @@
     </main>
 
     <script>
-        const NAMES = { 
-            "1st": "1조 조원", "2nd": "2조 조원", "3rd": "3조 조원",
-            "1st_l": "1조 주임", "2nd_l": "2조 주임", "3rd_l": "3조 주임", "master": "Master" 
-        };
-        
-        // ★★★ [중요] 팀장님, 여기서 따옴표 안의 비밀번호를 수정하세요! ★★★
-        // 이 코드를 수정해서 GitHub에 올리면 모든 조원에게 동시에 적용됩니다.
-        const DEFAULT_USERS = { 
-            "1st": "1111",      // 1조 조원 비번
-            "2nd": "2222",      // 2조 조원 비번
-            "3rd": "3333",      // 3조 조원 비번
-            "1st_l": "free11",  // 1조 주임 비번
-            "2nd_l": "free22",  // 2조 주임 비번
-            "3rd_l": "free33",  // 3조 주임 비번
-            "master": "admin99" // 마스터 비번
-        };
+        const REPO = "psychjun/shilla-training";
+        const NAMES = { "1st": "1조 조원", "2nd": "2조 조원", "3rd": "3조 조원", "1st_l": "1조 주임", "2nd_l": "2조 주임", "3rd_l": "3조 주임", "master": "Master" };
 
-        // 로컬 저장소와 병합 (기기별 개인화 유지)
-        const USERS = JSON.parse(localStorage.getItem('shilla_users')) || DEFAULT_USERS;
-
-        function checkLogin() {
+        async function checkLogin() {
             const id = document.getElementById('user-id').value;
             const pw = document.getElementById('user-pw').value;
+            const btn = document.getElementById('login-btn');
             
-            if (USERS[id] && USERS[id] === pw) {
-                sessionStorage.setItem('isLoggedIn', 'true');
-                sessionStorage.setItem('userRole', id);
-                sessionStorage.setItem('userName', NAMES[id]);
-                
-                // 관리자급 접속 로그 기록
-                if(id.includes('_l') || id === 'master') {
-                    saveLog(`${NAMES[id]} 관리자 접속`);
-                }
-                showMenu(id);
-            } else {
-                document.getElementById('login-error').innerText = "아이디 또는 비밀번호가 틀립니다.";
-            }
-        }
+            btn.innerText = "접속 중...";
+            btn.disabled = true;
 
-        function saveLog(action) {
-            let logs = JSON.parse(localStorage.getItem('shilla_system_logs') || '[]');
-            logs.push({ user: sessionStorage.getItem('userName'), action: action, time: new Date().toISOString() });
-            localStorage.setItem('shilla_system_logs', JSON.stringify(logs));
+            try {
+                // GitHub에서 실시간 비번 파일 로드 (캐시 방지 타임스탬프 추가)
+                const res = await fetch(`https://raw.githubusercontent.com/${REPO}/main/shilla_users.json?t=${new Date().getTime()}`);
+                const USERS = await res.json();
+
+                if (USERS[id] && USERS[id] === pw) {
+                    sessionStorage.setItem('isLoggedIn', 'true');
+                    sessionStorage.setItem('userRole', id);
+                    sessionStorage.setItem('userName', NAMES[id]);
+                    showMenu(id);
+                } else {
+                    document.getElementById('login-error').innerText = "아이디 또는 비밀번호가 틀립니다.";
+                }
+            } catch (e) {
+                alert("서버 연결 실패! shilla_users.json 파일이 있는지 확인하세요.");
+            } finally {
+                btn.innerText = "로그인";
+                btn.disabled = false;
+            }
         }
 
         function showMenu(role) {
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('menu-section').classList.remove('hidden');
             document.getElementById('welcome-user').innerText = NAMES[role];
-            // 주임 이상만 관리자 버튼 노출
             if(role.includes('_l') || role === 'master') {
                 document.getElementById('admin-btn').classList.remove('hidden');
             }
         }
 
-        function logout() { 
-            sessionStorage.clear(); 
-            location.replace('index.html'); 
-        }
-
-        window.onload = () => { 
-            if (sessionStorage.getItem('isLoggedIn') === 'true') {
-                showMenu(sessionStorage.getItem('userRole'));
-            }
-        };
+        function logout() { sessionStorage.clear(); location.replace('index.html'); }
+        window.onload = () => { if (sessionStorage.getItem('isLoggedIn') === 'true') showMenu(sessionStorage.getItem('userRole')); };
     </script>
 </body>
 </html>
