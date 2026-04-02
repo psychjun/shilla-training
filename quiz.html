@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Shilla Name Quiz</title>
+    <title>Shilla Voice Quiz</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
         body { font-family: 'Noto Sans KR', sans-serif; background-color: #0b0b0b; color: white; margin: 0; overflow: hidden; height: 100dvh; }
         .quiz-card { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 30px; }
         .timer-bar { transition: width 1s linear; background: #10b981; height: 4px; position: absolute; top: 0; left: 0; }
-        .ans-btn { background: #1a1a1a; border: 1px solid #333; transition: 0.2s; }
-        .ans-btn:active { transform: scale(0.95); background: #333; }
+        .mic-ani { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.2); opacity: 0.5; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body class="flex flex-col items-center">
     <header class="w-full p-3 flex justify-between items-center z-50 bg-white shadow-md h-14">
-        <div class="text-black font-black text-lg" onclick="location.href='index.html'"><span class="text-[#10b981]">Q</span>UIZ</div>
+        <div class="text-black font-black text-lg" onclick="location.href='index.html'"><span class="text-[#10b981]">V</span>OICE QUIZ</div>
         <img src="shilla_logo.png" alt="Shilla" class="h-7 w-auto">
     </header>
 
@@ -35,10 +35,14 @@
             <div id="feedback" class="absolute inset-0 flex items-center justify-center text-6xl hidden"></div>
         </div>
 
-        <div id="choice-container" class="grid grid-cols-2 gap-3 w-full mt-8"></div>
+        <div class="mt-10 flex flex-col items-center space-y-4">
+            <div id="mic-icon" class="text-5xl opacity-30">🎤</div>
+            <p id="status-text" class="text-sm font-bold text-gray-500">대기 중...</p>
+            <p id="transcript-text" class="text-lg font-black text-[#10b981] h-8"></p>
+        </div>
 
-        <button id="start-btn" onclick="startGame()" class="w-full bg-[#10b981] text-black font-black py-5 rounded-2xl mt-10 shadow-lg shadow-green-900/20 active:scale-95 transition-all">
-            게임 시작
+        <button id="start-btn" onclick="startGame()" class="w-full bg-[#10b981] text-black font-black py-5 rounded-2xl mt-10 shadow-lg active:scale-95 transition-all">
+            퀴즈 시작 (음성)
         </button>
     </main>
 
@@ -49,21 +53,53 @@
         let score = 0;
         let timeLeft = 10;
         let timerInterval = null;
-        
-        // [추가] 소리 재생을 위한 오디오 컨텍스트
+        let recognition = null;
         let audioCtx = null;
 
+        // [추가] 타이머 소리 재생 함수
         function playBuzzer() {
             if (!audioCtx) return;
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.type = 'sine';
-            osc.frequency.value = 800;
-            gain.gain.value = 0.1;
-            osc.start();
-            setTimeout(() => osc.stop(), 200);
+            try {
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sine';
+                osc.frequency.value = 800;
+                gain.gain.value = 0.1;
+                osc.start();
+                setTimeout(() => osc.stop(), 200);
+            } catch(e) { console.log(e); }
+        }
+
+        // [원복] 음성 인식 설정
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'ko-KR';
+
+            recognition.onstart = () => {
+                document.getElementById('mic-icon').classList.add('mic-ani', 'text-[#10b981]', 'opacity-100');
+                document.getElementById('status-text').innerText = "이름을 말씀하세요...";
+            };
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        checkAnswer(event.results[i][0].transcript.replace(/\s/g, ""));
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                        document.getElementById('transcript-text').innerText = interimTranscript;
+                    }
+                }
+            };
+
+            recognition.onend = () => {
+                document.getElementById('mic-icon').classList.remove('mic-ani', 'text-[#10b981]', 'opacity-100');
+            };
         }
 
         window.onload = async () => {
@@ -83,26 +119,14 @@
         }
 
         function nextQuestion() {
-            if (staffList.length < 4) return alert("데이터 부족");
+            if (staffList.length === 0) return;
             const correctIdx = Math.floor(Math.random() * staffList.length);
             currentQuestion = staffList[correctIdx];
-            const correctName = currentQuestion.name.split('_')[0];
-
-            let choices = [correctName];
-            while(choices.length < 4) {
-                let randName = staffList[Math.floor(Math.random() * staffList.length)].name.split('_')[0];
-                if(!choices.includes(randName)) choices.push(randName);
-            }
-            choices.sort(() => Math.random() - 0.5);
-
             document.getElementById('staff-img').src = currentQuestion.download_url;
-            document.getElementById('choice-container').innerHTML = choices.map(name => `
-                <button onclick="checkAnswer('${name}', '${correctName}')" class="ans-btn py-4 rounded-xl font-bold text-sm">
-                    ${name}
-                </button>
-            `).join('');
-
+            document.getElementById('transcript-text').innerText = "";
+            
             startTimer();
+            if(recognition) recognition.start();
         }
 
         function startTimer() {
@@ -114,9 +138,10 @@
                 updateTimerUI();
                 if(timeLeft <= 0) {
                     clearInterval(timerInterval);
+                    if(recognition) recognition.stop();
                     playBuzzer(); // 소리 추가
                     showFeedback(false);
-                    setTimeout(nextQuestion, 1000);
+                    setTimeout(nextQuestion, 1500);
                 }
             }, 1000);
         }
@@ -126,9 +151,14 @@
             document.getElementById('timer-progress').style.width = (timeLeft * 10) + "%";
         }
 
-        function checkAnswer(selected, correct) {
+        function checkAnswer(saidName) {
             clearInterval(timerInterval);
-            if(selected === correct) {
+            if(recognition) recognition.stop();
+
+            const correctName = currentQuestion.name.split('_')[0];
+            document.getElementById('transcript-text').innerText = saidName;
+
+            if(saidName.includes(correctName)) {
                 score += 10;
                 document.getElementById('score-display').innerText = `Score: ${score}`;
                 showFeedback(true);
@@ -136,7 +166,7 @@
                 playBuzzer(); // 오답 시 소리 추가
                 showFeedback(false);
             }
-            setTimeout(nextQuestion, 1000);
+            setTimeout(nextQuestion, 1500);
         }
 
         function showFeedback(isCorrect) {
@@ -144,7 +174,7 @@
             fb.innerText = isCorrect ? "O" : "X";
             fb.style.color = isCorrect ? "#10b981" : "#ef4444";
             fb.classList.remove('hidden');
-            setTimeout(() => fb.classList.add('hidden'), 800);
+            setTimeout(() => fb.classList.add('hidden'), 1000);
         }
     </script>
 </body>
