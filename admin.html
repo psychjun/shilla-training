@@ -15,6 +15,8 @@
         .pw-card { background: #1a1a1a; border-left: 4px solid #10b981; padding: 15px; border-radius: 12px; }
         .pw-input { background: #000; border: 1px solid #333; color: #10b981; padding: 10px; border-radius: 8px; width: 100%; outline: none; font-family: monospace; }
         .thumb-checkbox { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; accent-color: #10b981; z-index: 10; }
+        .day-cell { aspect-ratio: 1; border: 1px solid #222; font-size: 10px; padding: 4px; cursor: pointer; position: relative; }
+        .day-cell.has-log::after { content: ''; position: absolute; bottom: 4px; right: 4px; width: 4px; height: 4px; background: #10b981; border-radius: 50%; }
     </style>
 </head>
 <body class="pb-20">
@@ -31,44 +33,49 @@
         <button onclick="showTab('food')" id="tab-food" class="tab-btn flex-1 whitespace-nowrap">식단표 갱신</button>
         <button onclick="showTab('manual')" id="tab-manual" class="tab-btn flex-1 whitespace-nowrap">매뉴얼 수정</button>
         <button onclick="showTab('user')" id="tab-user" class="tab-btn flex-1 whitespace-nowrap">비번 관리</button>
+        <button onclick="showTab('log')" id="tab-log" class="tab-btn flex-1 whitespace-nowrap hidden">시스템 로그</button>
     </nav>
 
     <main class="p-6 space-y-6">
         <div class="admin-card">
-            <h3 class="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-tighter">GitHub Connection Token</h3>
-            <input type="password" id="gh-token" placeholder="토큰을 입력하세요" class="w-full p-3 bg-black border border-gray-700 rounded-xl text-xs text-[#10b981]">
+            <h3 class="text-[10px] font-bold text-gray-500 mb-2 uppercase tracking-tighter text-center">GitHub Connection Token</h3>
+            <input type="password" id="gh-token" placeholder="토큰을 입력하세요" class="w-full p-3 bg-black border border-gray-700 rounded-xl text-xs text-[#10b981] text-center">
         </div>
 
         <div id="sec-photo" class="tab-content space-y-6">
             <div class="admin-card border-l-4 border-blue-500">
-                <h4 class="text-blue-400 font-bold mb-3 text-sm">신규 사진 등록</h4>
+                <h4 class="text-blue-400 font-bold mb-3 text-sm italic uppercase tracking-widest">New Staff Photo</h4>
                 <input type="text" id="upload-name" placeholder="직원 성함" class="w-full p-3 bg-black border border-gray-700 rounded-xl mb-3 text-sm">
                 <input type="file" id="file-input" class="w-full text-xs text-gray-500 mb-3">
-                <button onclick="handleUpload()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl active:scale-95 transition-all">GitHub 업로드</button>
+                <button onclick="handleUpload()" class="w-full bg-blue-600 text-white font-black py-3 rounded-xl active:scale-95 transition-all">GITHUB 업로드</button>
             </div>
             <div class="admin-card border-l-4 border-red-500">
-                <h4 class="text-red-500 font-bold mb-3 text-sm">사진 검색 및 선택 삭제</h4>
+                <h4 class="text-red-500 font-bold mb-3 text-sm italic uppercase tracking-widest">Search & Delete</h4>
                 <div class="flex space-x-2 mb-4">
                     <input type="text" id="search-name" placeholder="이름 입력" class="flex-grow p-3 bg-black border border-gray-700 rounded-xl text-sm">
-                    <button onclick="searchPhotos()" class="px-4 bg-gray-800 rounded-xl text-sm font-bold">검색</button>
+                    <button onclick="searchPhotos()" class="px-4 bg-gray-800 rounded-xl text-sm font-bold active:scale-90 transition-all">검색</button>
                 </div>
                 <div id="search-results" class="grid grid-cols-2 gap-3"></div>
-                <button id="del-btn" onclick="deleteSelected()" class="hidden w-full bg-red-600 text-white font-black py-4 rounded-xl mt-4">선택 삭제</button>
+                <button id="del-btn" onclick="deleteSelected()" class="hidden w-full bg-red-600 text-white font-black py-4 rounded-xl mt-4">선택한 사진 삭제</button>
             </div>
         </div>
 
         <div id="sec-food" class="tab-content hidden">
             <div class="admin-card border-l-4 border-[#10b981]">
-                <h3 class="text-[#10b981] font-bold mb-4 text-sm">식단표 수동 갱신</h3>
-                <button onclick="refreshFoodMenu()" class="w-full bg-[#10b981] text-black font-black py-4 rounded-xl">최신 이미지 동기화</button>
+                <h3 class="text-[#10b981] font-bold mb-4 text-sm uppercase">Cafeteria Menu Sync</h3>
+                <button onclick="refreshFoodMenu()" class="w-full bg-[#10b981] text-black font-black py-4 rounded-xl active:scale-95 transition-all">최신 이미지 동기화</button>
+                <div id="food-preview-box" class="hidden mt-4">
+                    <img id="food-preview-img" src="" class="w-full rounded-lg border border-gray-800">
+                </div>
             </div>
         </div>
 
         <div id="sec-manual" class="tab-content hidden">
             <div class="admin-card border-l-4 border-[#d4af37]">
-                <h3 class="text-[#d4af37] font-bold mb-4 text-sm uppercase">Patrol Manual Server Edit</h3>
+                <h3 class="text-[#d4af37] font-bold mb-4 text-sm uppercase tracking-widest">Patrol Manual Server Edit</h3>
+                <p class="text-[10px] text-gray-500 mb-4">* 여기서 수정하면 모든 조원의 '순찰업무' 페이지가 즉시 업데이트됩니다.</p>
                 <textarea id="manual-text" rows="12" class="w-full bg-black border border-gray-800 rounded-xl p-4 text-sm text-gray-300 outline-none focus:border-[#10b981]" placeholder="매뉴얼 내용을 입력하세요..."></textarea>
-                <button onclick="updateGlobalManual()" class="w-full bg-white text-black font-black py-4 rounded-xl mt-4 active:scale-95 transition-all">매뉴얼 서버 저장 (전체 배포)</button>
+                <button onclick="updateGlobalManual()" class="w-full bg-white text-black font-black py-4 rounded-xl mt-4 active:scale-95 transition-all shadow-lg">매뉴얼 서버 저장 (전체 배포)</button>
             </div>
         </div>
 
@@ -78,13 +85,25 @@
                 <div id="user-list-container" class="space-y-4"></div>
             </div>
         </div>
+
+        <div id="sec-log" class="tab-content hidden space-y-4">
+            <div class="admin-card">
+                <h3 class="fz-green font-bold mb-4 text-sm uppercase tracking-widest">Activity Logs</h3>
+                <div id="calendar-grid" class="grid grid-cols-7 border-t border-l border-gray-800 text-center"></div>
+            </div>
+            <div id="log-detail" class="admin-card hidden max-h-80 overflow-y-auto">
+                <div id="log-list-box" class="space-y-2"></div>
+            </div>
+        </div>
     </main>
 
     <script>
         const REPO = "psychjun/shilla-training";
         const role = sessionStorage.getItem('userRole') || 'guest';
+        const userName = sessionStorage.getItem('userName') || 'Unknown';
         
         window.onload = () => {
+            if(role === 'master') document.getElementById('tab-log')?.classList.remove('hidden');
             const savedToken = localStorage.getItem('gh_pat');
             if(savedToken) document.getElementById('gh-token').value = savedToken;
             showTab('photo');
@@ -97,30 +116,30 @@
             document.getElementById('tab-' + tab).classList.add('active');
             if(tab === 'user') renderUserManagement();
             if(tab === 'manual') loadManualFromServer();
+            if(tab === 'log') renderCalendar();
         }
 
-        // --- 매뉴얼 서버 연동 로직 ---
+        // --- 매뉴얼 로직 ---
         async function loadManualFromServer() {
             const textarea = document.getElementById('manual-text');
-            textarea.value = "서버에서 불러오는 중...";
+            textarea.value = "서버에서 매뉴얼을 불러오는 중...";
             try {
                 const res = await fetch(`https://raw.githubusercontent.com/${REPO}/main/patrol_manual.json?t=${Date.now()}`);
                 const data = await res.json();
                 textarea.value = data.content;
-            } catch(e) { textarea.value = "불러오기 실패. 파일을 확인하세요."; }
+            } catch(e) { textarea.value = "매뉴얼을 불러오지 못했습니다. GitHub에 patrol_manual.json이 있는지 확인하세요."; }
         }
 
         async function updateGlobalManual() {
             const token = document.getElementById('gh-token').value;
             const content = document.getElementById('manual-text').value;
-            if(!token) return alert("토큰이 필요합니다.");
+            if(!token) return alert("GitHub 토큰이 필요합니다.");
 
             try {
                 const fileRes = await fetch(`https://api.github.com/repos/${REPO}/contents/patrol_manual.json`, {
                     headers: { "Authorization": `token ${token}` }
                 });
                 const fileData = await fileRes.json();
-                
                 const updatedData = { content: content };
 
                 const updateRes = await fetch(`https://api.github.com/repos/${REPO}/contents/patrol_manual.json`, {
@@ -134,16 +153,16 @@
                 });
 
                 if(updateRes.ok) {
-                    localStorage.setItem('gh_pat', token);
-                    alert("매뉴얼이 서버에 저장되었습니다! 모든 조원에게 즉시 적용됩니다.");
+                    addLog("매뉴얼 서버 업데이트 완료");
+                    alert("매뉴얼이 서버에 저장되었습니다! 이제 모든 조원에게 적용됩니다.");
                 } else alert("저장 실패!");
-            } catch(e) { alert("오류: " + e.message); }
+            } catch(e) { alert("서버 통신 오류!"); }
         }
 
-        // --- 사진 관리/비번 관리/식단표 로직 (이전과 동일) ---
+        // --- 비번 관리 로직 ---
         async function renderUserManagement() {
             const container = document.getElementById('user-list-container');
-            container.innerHTML = "<p class='text-center text-xs py-10 text-gray-500'>로드 중...</p>";
+            container.innerHTML = "<p class='text-center text-xs py-10 text-gray-500'>서버 로드 중...</p>";
             try {
                 const res = await fetch(`https://raw.githubusercontent.com/${REPO}/main/shilla_users.json?t=${Date.now()}`);
                 const USERS = await res.json();
@@ -158,35 +177,135 @@
                     if (canManage) {
                         const card = document.createElement('div');
                         card.className = "pw-card space-y-3";
-                        card.innerHTML = `<div class="flex justify-between items-center"><span class="text-sm font-black uppercase text-gray-200">${id}</span><button onclick="updateGlobalPw('${id}')" class="text-[10px] bg-[#10b981] text-black font-bold px-4 py-1.5 rounded-md">변경</button></div><input type="text" id="pw-input-${id}" value="${pw}" class="pw-input">`;
+                        card.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm font-black uppercase text-gray-200">${id}</span>
+                                <button onclick="updateGlobalPw('${id}')" class="text-[10px] bg-[#10b981] text-black font-bold px-4 py-1.5 rounded-md active:scale-95">변경</button>
+                            </div>
+                            <input type="text" id="pw-input-${id}" value="${pw}" class="pw-input">
+                        `;
                         container.appendChild(card);
                     }
                 });
-            } catch(e) { container.innerHTML = "로드 실패!"; }
+            } catch(e) { container.innerHTML = "데이터 로드 실패!"; }
         }
 
         async function updateGlobalPw(id) {
             const token = document.getElementById('gh-token').value;
             const newPw = document.getElementById(`pw-input-${id}`).value;
             if(!token) return alert("토큰 필요");
-            const fileRes = await fetch(`https://api.github.com/repos/${REPO}/contents/shilla_users.json`, {headers:{"Authorization":`token ${token}`}});
-            const fileData = await fileRes.json();
-            const currentUsers = JSON.parse(atob(fileData.content));
-            currentUsers[id] = newPw;
-            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/shilla_users.json`, {
-                method:"PUT", headers:{"Authorization":`token ${token}`,"Content-Type":"application/json"},
-                body:JSON.stringify({message:`Update Pw ${id}`,content:btoa(JSON.stringify(currentUsers,null,2)),sha:fileData.sha})
-            });
-            if(res.ok) alert("비번 서버 반영 완료!");
+            try {
+                const fileRes = await fetch(`https://api.github.com/repos/${REPO}/contents/shilla_users.json`, {headers:{"Authorization":`token ${token}`}});
+                const fileData = await fileRes.json();
+                const currentUsers = JSON.parse(atob(fileData.content));
+                currentUsers[id] = newPw;
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/shilla_users.json`, {
+                    method:"PUT", headers:{"Authorization":`token ${token}`,"Content-Type":"application/json"},
+                    body:JSON.stringify({message:`Update Pw ${id}`,content:btoa(JSON.stringify(currentUsers,null,2)),sha:fileData.sha})
+                });
+                if(res.ok) { addLog(`비번 변경: ${id}`); alert("비번 서버 반영 완료!"); }
+            } catch(e) { alert("비번 변경 실패!"); }
         }
 
-        async function refreshFoodMenu() { 
-            alert("최신 이미지를 서버에서 성공적으로 가져왔습니다."); 
+        // --- 사진 관리 로직 ---
+        async function handleUpload() {
+            const token = document.getElementById('gh-token').value;
+            const name = document.getElementById('upload-name').value.trim();
+            const fileInput = document.getElementById('file-input');
+            if(!token || !name || !fileInput.files[0]) return alert("정보를 모두 입력하세요.");
+            const reader = new FileReader();
+            reader.readAsDataURL(fileInput.files[0]);
+            reader.onload = async () => {
+                const base64 = reader.result.split(',')[1];
+                const fileName = `${name}_${Date.now()}.jpg`;
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${fileName}`, {
+                    method: "PUT", headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: `Upload ${fileName}`, content: base64 })
+                });
+                if(res.ok) { addLog(`사진 등록: ${fileName}`); alert("업로드 성공!"); }
+            };
         }
 
-        async function handleUpload() { /* 기존 업로드 로직 동일 */ }
-        async function searchPhotos() { /* 기존 검색 로직 동일 */ }
-        async function deleteSelected() { /* 기존 삭제 로직 동일 */ }
+        async function searchPhotos() {
+            const name = document.getElementById('search-name').value.trim();
+            const resBox = document.getElementById('search-results');
+            if(!name) return alert("이름을 입력하세요.");
+            resBox.innerHTML = "<p class='col-span-2 text-center text-xs py-10'>검색 중...</p>";
+            const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
+            const data = await res.json();
+            const found = data.filter(f => f.name.includes(name) && f.name.endsWith('.jpg'));
+            if(found.length === 0) {
+                resBox.innerHTML = "<p class='col-span-2 text-center text-xs py-10 text-gray-500'>결과 없음</p>";
+                document.getElementById('del-btn').classList.add('hidden');
+                return;
+            }
+            resBox.innerHTML = found.map(f => `
+                <div class="relative bg-black border border-gray-800 rounded-lg overflow-hidden shadow-xl">
+                    <img src="${f.download_url}" class="w-full aspect-square object-cover opacity-60">
+                    <input type="checkbox" class="thumb-checkbox" value="${f.sha}" data-name="${f.name}">
+                    <div class="absolute bottom-0 p-1 text-[9px] w-full bg-black/80 text-center truncate">${f.name}</div>
+                </div>
+            `).join('');
+            document.getElementById('del-btn').classList.remove('hidden');
+        }
+
+        async function deleteSelected() {
+            const token = document.getElementById('gh-token').value;
+            const checks = document.querySelectorAll('.thumb-checkbox:checked');
+            if(!token || checks.length === 0) return alert("삭제할 사진을 선택하세요.");
+            if(!confirm("삭제하시겠습니까?")) return;
+            for(let c of checks) {
+                const n = c.getAttribute('data-name');
+                const s = c.value;
+                const res = await fetch(`https://api.github.com/repos/${REPO}/contents/${n}`, {
+                    method: "DELETE", headers: { "Authorization": `token ${token}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ message: `Delete ${n}`, sha: s })
+                });
+                if(res.ok) addLog(`사진 삭제: ${n}`);
+            }
+            alert("삭제 완료!"); searchPhotos();
+        }
+
+        // --- 기타 공통 기능 ---
+        function addLog(action) {
+            let logs = JSON.parse(localStorage.getItem('shilla_system_logs') || '[]');
+            logs.push({ user: userName, action: action, time: new Date().toISOString() });
+            localStorage.setItem('shilla_system_logs', JSON.stringify(logs));
+        }
+
+        function refreshFoodMenu() {
+            const previewBox = document.getElementById('food-preview-box');
+            const previewImg = document.getElementById('food-preview-img');
+            const menuUrl = `https://raw.githubusercontent.com/${REPO}/main/food_menu.jpg?t=${Date.now()}`;
+            previewImg.src = menuUrl;
+            previewImg.onload = () => { previewBox.classList.remove('hidden'); addLog("식단표 갱신 완료"); alert("식단표 동기화 완료!"); };
+        }
+
+        function renderCalendar() {
+            const grid = document.getElementById('calendar-grid');
+            const logs = JSON.parse(localStorage.getItem('shilla_system_logs') || '[]');
+            grid.innerHTML = '';
+            const now = new Date();
+            const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+            for(let i=1; i<=daysInMonth; i++) {
+                const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                const hasLog = logs.some(l => l.time.startsWith(dateStr));
+                grid.innerHTML += `<div class="day-cell ${hasLog?'has-log':''}" onclick="showDayLogs('${dateStr}')">${i}</div>`;
+            }
+        }
+
+        function showDayLogs(date) {
+            const box = document.getElementById('log-detail');
+            const listBox = document.getElementById('log-list-box');
+            const filtered = JSON.parse(localStorage.getItem('shilla_system_logs') || '[]').filter(l => l.time.startsWith(date)).reverse();
+            box.classList.remove('hidden');
+            listBox.innerHTML = filtered.map(l => `
+                <div class="text-[10px] border-b border-gray-800 pb-2">
+                    <span class="text-[#10b981] font-bold">[${l.user}]</span> ${l.action}
+                    <span class="text-gray-600 block text-[9px] mt-1">${new Date(l.time).toLocaleTimeString()}</span>
+                </div>
+            `).join('') || "기록 없음";
+        }
     </script>
 </body>
 </html>
