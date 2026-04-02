@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Emergency Contacts - Shilla Security</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;700;900&display=swap');
+        body { font-family: 'Noto Sans KR', sans-serif; background-color: #000; color: white; margin: 0; }
+        .contact-card { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 16px; transition: 0.2s; }
+        .contact-card:active { background: rgba(16, 185, 129, 0.2); transform: scale(0.98); }
+        .dept-tag { background: #10b981; color: black; font-size: 10px; font-weight: 900; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; }
+        .fz-green { color: #10b981; }
+        .scroll-box::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="flex flex-col items-center pb-10">
+    <header class="w-full p-3 flex justify-between items-center z-50 bg-white shadow-md h-14" onclick="location.href='index.html'">
+        <img src="freezone_logo.png" alt="Freezone" class="h-6 w-auto">
+        <img src="shilla_logo.png" alt="Shilla" class="h-7 w-auto"> 
+    </header>
+
+    <main class="w-full max-w-sm px-6 pt-8 flex flex-col">
+        <div class="mb-8">
+            <h2 class="text-4xl font-black italic tracking-tighter uppercase"><span class="fz-green">C</span>ontacts</h2>
+            <p class="text-gray-500 font-bold text-xs uppercase tracking-widest leading-none">Security Emergency Network</p>
+        </div>
+
+        <div class="space-y-8 scroll-box">
+            
+            <section>
+                <div class="flex items-center space-x-2 mb-4">
+                    <span class="dept-tag">Security Team</span>
+                    <div class="h-[1px] flex-grow bg-white/10"></div>
+                </div>
+                <div class="grid grid-cols-1 gap-3">
+                    <a href="tel:010-4840-4732" class="contact-card p-4 flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] text-gray-500 font-bold">실장</p>
+                            <p class="text-lg font-black text-white">이준수</p>
+                        </div>
+                        <span class="text-gray-600">010-4840-4732</span>
+                    </a>
+                    <a href="tel:010-5418-0823" class="contact-card p-4 flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] text-gray-500 font-bold">부팀장</p>
+                            <p class="text-lg font-black text-white">박용승</p>
+                        </div>
+                        <span class="text-gray-600">010-5418-0823</span>
+                    </a>
+                </div>
+            </section>
+
+            <section>
+                <div class="flex items-center space-x-2 mb-4">
+                    <span class="dept-tag">1 Logistics</span>
+                    <div class="h-[1px] flex-grow bg-white/10"></div>
+                </div>
+                <div class="grid grid-cols-1 gap-3">
+                    <a href="tel:010-4947-4156" class="contact-card p-4 flex justify-between items-center border-l-4 border-[#10b981]">
+                        <div>
+                            <p class="text-[10px] text-[#10b981] font-bold">팀장</p>
+                            <p class="text-lg font-black text-white">황재혁</p>
+                        </div>
+                        <span class="text-gray-600">010-4947-4156</span>
+                    </a>
+                    <a href="tel:010-7736-7114" class="contact-card p-4 flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] text-gray-500 font-bold">부팀장</p>
+                            <p class="text-lg font-black text-white">이인학</p>
+                        </div>
+                        <span class="text-gray-600">010-7736-7114</span>
+                    </a>
+                    <a href="tel:010-02625-2508" class="contact-card p-4 flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] text-gray-500 font-bold">주임</p>
+                            <p class="text-lg font-black text-white">신수빈</p>
+                        </div>
+                        <span class="text-gray-600">010-2625-2508</span>
+                    </a>
+                </div>
+            </section>
+
+            <section>
+                <div class="flex items-center space-x-2 mb-4">
+                    <span class="dept-tag">2 Logistics</span>
+                    <div class="h-[1px] flex-grow bg-white/10"></div>
+                </div>
+                <div class="grid grid-cols-1 gap-3">
+                    <a href="tel:010-9416-0399" class="contact-card p-4 flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] text-gray-500 font-bold">주임</p>
+                            <p class="text-lg font-black text-white">한정희</p>
+                        </div>
+                        <span class="text-gray-600">010-9416-0399</span>
+                    </a>
+                    <a href="tel:010-7142-9501" class="contact-card p-4 flex justify-between items-center">
+                        <div>
+                            <p class="text-[10px] text-gray-500 font-bold">주임</p>
+                            <p class="text-lg font-black text-white">주권혁</p>
+                        </div>
+                        <span class="text-gray-600">010-7142-9501</span>
+                    </a>
+                    <a href="tel:010-5686-4252" class="contact-card p-4 flex justify-between items-center border-l-4 border-[#10b981]">
+                        <div>
+                            <p class="text-[10px] text-[#10b981] font-bold">주임</p>
+                            <p class="text-lg font-black text-white">정호준</p>
+                        </div>
+                        <span class="text-gray-600">010-5686-4252</span>
+                    </a>
+                </div>
+            </section>
+
+            <section>
+                <div class="flex items-center space-x-2 mb-4">
+                    <span class="dept-tag">SCM</span>
+                    <div class="h-[1px] flex-grow bg-white/10"></div>
+                </div>
+                <div class="grid grid-cols-1 gap-3">
+                    <a href="tel:010-6236-1283" class="contact-card p-4 flex justify-between items-center">
+                        <p class="text-lg font-black">김동원 프로</p>
+                        <span class="text-gray-600">010-6236-1283</span>
+                    </a>
+                    <a href="tel:010-4345-1767" class="contact-card p-4 flex justify-between items-center">
+                        <p class="text-lg font-black">손용호 프로</p>
+                        <span class="text-gray-600">010-4345-1767</span>
+                    </a>
+                    <a href="tel:010-3104-0924" class="contact-card p-4 flex justify-between items-center">
+                        <p class="text-lg font-black">김병순 프로</p>
+                        <span class="text-gray-600">010-3104-0924</span>
+                    </a>
+                </div>
+            </section>
+
+            <section>
+                <div class="flex items-center space-x-2 mb-4">
+                    <span class="dept-tag">Regional</span>
+                    <div class="h-[1px] flex-grow bg-white/10"></div>
+                </div>
+                <div class="grid grid-cols-1 gap-3">
+                    <a href="tel:010-7287-0270" class="contact-card p-4 flex justify-between items-center">
+                        <div>
+                            <p class="text-[9px] text-gray-500 uppercase">인천통물 팀장</p>
+                            <p class="text-lg font-black text-white">윤태규</p>
+                        </div>
+                        <span class="text-gray-600">010-7287-0270</span>
+                    </a>
+                    <a href="tel:010-6258-5018" class="contact-card p-4 flex justify-between items-center">
+                        <div>
+                            <p class="text-[9px] text-gray-500 uppercase">청라통물 팀장</p>
+                            <p class="text-lg font-black text-white">함희찬</p>
+                        </div>
+                        <span class="text-gray-600">010-6258-5018</span>
+                    </a>
+                </div>
+            </section>
+
+        </div>
+
+        <button onclick="location.href='index.html'" class="w-full bg-white text-black font-black py-5 rounded-2xl mt-10 shadow-lg active:scale-95 transition-all">메인으로 돌아가기</button>
+    </main>
+</body>
+</html>

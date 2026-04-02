@@ -24,6 +24,7 @@
     </header>
 
     <main class="relative z-10 w-full max-w-sm flex-grow flex flex-col items-center pt-12 px-8">
+        
         <div id="login-section" class="w-full space-y-8 mt-10">
             <div class="text-center">
                 <h1 class="text-6xl fz-logo mb-2 tracking-tighter">
@@ -47,6 +48,7 @@
                 </div>
                 <button onclick="logout()" class="text-[10px] text-gray-500 border border-gray-700 px-2 py-1 rounded-md">로그아웃</button>
             </div>
+
             <div class="grid grid-cols-3 gap-6 w-full">
                 <button onclick="location.href='quiz.html'" class="flex flex-col items-center space-y-2">
                     <div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">👤</div>
@@ -56,13 +58,17 @@
                     <div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">🍱</div>
                     <span class="text-[11px] font-bold text-gray-300">구내식당</span>
                 </button>
-                <button id="admin-btn" onclick="location.href='admin.html'" class="hidden flex flex-col items-center space-y-2">
-                    <div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">⚙️</div>
-                    <span class="text-[11px] font-bold text-[#10b981]">관리자</span>
+                <button onclick="location.href='contacts.html'" class="flex flex-col items-center space-y-2">
+                    <div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">📞</div>
+                    <span class="text-[11px] font-bold text-[#10b981]">비상연락</span>
                 </button>
                 <button onclick="location.href='patrol.html'" class="flex flex-col items-center space-y-2">
                     <div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">🔦</div>
                     <span class="text-[11px] font-bold text-gray-300">순찰업무</span>
+                </button>
+                <button id="admin-btn" onclick="location.href='admin.html'" class="hidden flex flex-col items-center space-y-2">
+                    <div class="app-card w-16 h-16 rounded-[22px] flex items-center justify-center text-3xl">⚙️</div>
+                    <span class="text-[11px] font-bold text-gray-400">관리자</span>
                 </button>
             </div>
         </div>
@@ -74,49 +80,84 @@
 
     <script>
         const REPO = "psychjun/shilla-training";
-        const NAMES = { "1st": "1조 조원", "2nd": "2조 조원", "3rd": "3조 조원", "1st_l": "1조 주임", "2nd_l": "2조 주임", "3rd_l": "3조 주임", "master": "Master" };
+        const NAMES = { 
+            "1st": "1조 조원", "2nd": "2조 조원", "3rd": "3조 조원",
+            "1st_l": "1조 주임", "2nd_l": "2조 주임", "3rd_l": "3조 주임", "master": "Master" 
+        };
 
+        // --- [핵심] GitHub 서버 기반 로그인 처리 ---
         async function checkLogin() {
             const id = document.getElementById('user-id').value;
             const pw = document.getElementById('user-pw').value;
             const btn = document.getElementById('login-btn');
-            
-            btn.innerText = "데이터 확인 중...";
+            const errorText = document.getElementById('login-error');
+
+            if(!id || !pw) {
+                errorText.innerText = "ID와 Password를 입력하세요.";
+                return;
+            }
+
+            btn.innerText = "보안 확인 중...";
             btn.disabled = true;
 
             try {
-                // 캐시 방지를 위해 랜덤 쿼리 추가하여 GitHub에서 최신 JSON 로드
+                // 캐시 방지를 위해 랜덤 쿼리 추가하여 서버(GitHub)에서 최신 비번 데이터 로드
                 const res = await fetch(`https://raw.githubusercontent.com/${REPO}/main/shilla_users.json?t=${new Date().getTime()}`);
-                if(!res.ok) throw new Error();
+                if(!res.ok) throw new Error("서버 파일 없음");
+                
                 const USERS = await res.json();
 
                 if (USERS[id] && USERS[id] === pw) {
                     sessionStorage.setItem('isLoggedIn', 'true');
                     sessionStorage.setItem('userRole', id);
                     sessionStorage.setItem('userName', NAMES[id]);
+                    
+                    // 관리자급 접속 시 시스템 로그 기록 (로컬)
+                    if(id.includes('_l') || id === 'master') {
+                        saveLog(`${NAMES[id]} 관리자 접속`);
+                    }
                     showMenu(id);
                 } else {
-                    document.getElementById('login-error').innerText = "ID 또는 비밀번호가 틀립니다.";
+                    errorText.innerText = "ID 또는 비밀번호가 틀립니다.";
                 }
             } catch (e) {
-                alert("서버 비번 파일을 찾을 수 없습니다. GitHub에 shilla_users.json 파일을 먼저 생성하세요.");
+                alert("로그인 서버에 접속할 수 없습니다. shilla_users.json 파일을 확인해 주세요.");
             } finally {
                 btn.innerText = "로그인";
                 btn.disabled = false;
             }
         }
 
+        // 로컬 로그 기록
+        function saveLog(action) {
+            let logs = JSON.parse(localStorage.getItem('shilla_system_logs') || '[]');
+            logs.push({ user: sessionStorage.getItem('userName'), action: action, time: new Date().toISOString() });
+            localStorage.setItem('shilla_system_logs', JSON.stringify(logs));
+        }
+
+        // 로그인 성공 시 UI 전환
         function showMenu(role) {
             document.getElementById('login-section').classList.add('hidden');
             document.getElementById('menu-section').classList.remove('hidden');
             document.getElementById('welcome-user').innerText = NAMES[role];
+            
+            // 주임 이상 계정일 경우에만 관리자 버튼 노출
             if(role.includes('_l') || role === 'master') {
                 document.getElementById('admin-btn').classList.remove('hidden');
             }
         }
 
-        function logout() { sessionStorage.clear(); location.replace('index.html'); }
-        window.onload = () => { if (sessionStorage.getItem('isLoggedIn') === 'true') showMenu(sessionStorage.getItem('userRole')); };
+        function logout() { 
+            sessionStorage.clear(); 
+            location.replace('index.html'); 
+        }
+
+        // 새로고침 시 로그인 상태 유지 확인
+        window.onload = () => { 
+            if (sessionStorage.getItem('isLoggedIn') === 'true') {
+                showMenu(sessionStorage.getItem('userRole'));
+            }
+        };
     </script>
 </body>
 </html>
